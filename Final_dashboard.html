@@ -96,6 +96,14 @@
   }
   .section-sub{ color:var(--muted); font-size:13.5px; margin:0 0 22px; }
 
+  /* Clear All corner position within the white panel */
+  .panel-corner-btn {
+    position:absolute;
+    top: 24px;
+    right: 28px;
+    z-index: 10;
+  }
+
   /* Form grid */
   .field-row{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
   .field{ display:flex; flex-direction:column; gap:6px; }
@@ -116,7 +124,7 @@
   .manual-tag{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:11.5px; }
 
   .dropzone{
-    position:relative; border:1.5px dashed var(--line); border-radius:9px;
+    position:relative; border:1.5px dashed var(--line); border-radius:99px;
     background:#F5F7F2; padding:16px 12px; text-align:center; cursor:pointer;
     transition: border-color .15s ease, background .15s ease;
   }
@@ -223,7 +231,7 @@
   .yn-btn.yes.active{ background:var(--green-bg); border-color:var(--green); color:var(--green); }
   .yn-btn.no.active{ background:var(--rust-bg); border-color:var(--rust); color:var(--rust); }
   .q-note{ margin-top:10px; display:none; }
-  .q-note.visible{ display:block; }
+  .q-note.visible{ display:block; animation: fadeIn .2s ease; }
   .q-note input{
     width:100%; font-family:'Inter', sans-serif; font-size:13px;
     padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:#F9FAF7;
@@ -260,6 +268,7 @@
     .field-row{ grid-template-columns: 1fr; }
     .q-top{ flex-direction:column; }
     .stamp{ width:100px; height:100px; font-size:11.5px; }
+    .panel-corner-btn { position: static; margin-bottom: 12px; display: inline-block; }
   }
 </style>
 </head>
@@ -280,6 +289,11 @@
   </div>
 
   <div class="panel-shell">
+    
+    <!-- Unified Clear All Options Positioned inside White Box Right Corner -->
+    <div class="panel-corner-btn" id="checklistClearAllContainer" style="display: none;">
+      <button class="ghost" onclick="resetChecklist()" style="color: var(--rust); border-color: var(--line); font-size: 13px;">Clear All Options</button>
+    </div>
 
     <!-- ===================== TAB 1: APP SIZE ===================== -->
     <div class="tab-panel active" id="tab-size">
@@ -360,8 +374,10 @@
 
     <!-- ===================== TAB 2: CHECKLIST ===================== -->
     <div class="tab-panel" id="tab-checklist">
-      <h2 class="section-title">QA release checklist</h2>
-      <p class="section-sub">Answer Yes/No for each item. If you pick No, add a short note explaining why. A few items always ask for a detail.</p>
+      <div>
+        <h2 class="section-title">QA release checklist</h2>
+        <p class="section-sub">Answer Yes/No for each item. If you pick No, add a short note explaining why. A few items always ask for a detail.</p>
+      </div>
 
       <div class="meta-grid">
         <div class="field">
@@ -417,10 +433,18 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    
+    // Toggle the corner "Clear All Options" visibility depending on tab
+    const clearAllBtn = document.getElementById('checklistClearAllContainer');
+    if(btn.dataset.tab === 'checklist') {
+      clearAllBtn.style.display = 'block';
+    } else {
+      clearAllBtn.style.display = 'none';
+    }
   });
 });
 
-/* ---------------- Version history (last 5 versions, persisted locally in this browser) ---------------- */
+/* ---------------- Version history ---------------- */
 const HISTORY_KEY = 'qa_dashboard_release_history';
 
 function loadHistory(){
@@ -430,7 +454,7 @@ function loadHistory(){
   } catch(e){ return []; }
 }
 function saveHistory(hist){
-  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(hist)); } catch(e){ /* storage unavailable, ignore */ }
+  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(hist)); } catch(e){ }
 }
 function currentVersionLabel(){
   const v = document.getElementById('appVersionInput').value.trim();
@@ -616,7 +640,6 @@ function generateSizeReport(){
 }
 
 /* ---------------- Checklist tab ---------------- */
-/* Preset devices for the "tested on all devices / all OS" checklist items */
 const deviceList = [
   {platform:'Android', name:'Samsung M36', os:'OS-16'},
   {platform:'Android', name:'Lava LXX', os:'OS-15'},
@@ -631,8 +654,8 @@ const deviceList = [
   {platform:'iOS', name:'iPhone 14 Plus', os:'OS-18'},
   {platform:'iOS', name:'iPhone 16e', os:'OS-18'},
   {platform:'iOS', name:'iPhone 6S', os:'OS-15'},
-  {platform:'iOS', name:'iPad 10th Gen Blue', os:'OS-18'},
-  {platform:'iOS', name:'iPad 10th Gen Silver', os:'OS-26'},
+  {platform:'iPad', name:'iPad 10th Gen Blue', os:'OS-18'},
+  {platform:'iPad', name:'iPad 10th Gen Silver', os:'OS-26'},
   {platform:'iOS', name:'iPhone 16e White', os:'OS-26'},
   {platform:'iOS', name:'iPhone 13', os:'OS-17'}
 ];
@@ -656,11 +679,11 @@ const questions = [
   {id:16, text:'Did you ask the developer, Is old version open issues resolved in this update?', noteType:'always', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
   {id:17, text:'Have you checked all modules as per TestLink?', noteType:'onYes', noteLabel:'Note', hint:'If Yes, reference the TestLink Report Link above'},
   {id:18, text:'Have you checked User Acceptance Testing?', noteType:'onNo'},
-  {id:19, text:'Have you tested the application in all devices?', noteType:'always', noteLabel:'Device Name', hint:'List all device names tested'},
-  {id:20, text:'Have you tested the application in all OS?', noteType:'always', noteLabel:'OS Name', hint:'List all OS versions tested'}
+  {id:19, text:'Have you tested the application in all devices?', noteType:'onYes', noteLabel:'Device Name', hint:'List all device names tested'},
+  {id:20, text:'Have you tested the application in all OS?', noteType:'onYes', noteLabel:'OS Name', hint:'List all OS versions tested'}
 ];
 
-const state = {}; // {id: {answer: 'Yes'|'No'|null, note: ''}}
+const state = {};
 questions.forEach(q=>{ state[q.id] = {answer:null, note: q.defaultNote || ''}; });
 
 const listEl = document.getElementById('questionList');
@@ -674,35 +697,35 @@ questions.forEach(q=>{
     const androidChecks = deviceList.filter(d=>d.platform==='Android').map(d=>
       `<label class="device-check-item"><input type="checkbox" class="device-check" data-platform="Android" data-name="${d.name}" data-os="${d.os}">${d.name}</label>`
     ).join('');
-    const iosChecks = deviceList.filter(d=>d.platform==='iOS').map(d=>
-      `<label class="device-check-item"><input type="checkbox" class="device-check" data-platform="iOS" data-name="${d.name}" data-os="${d.os}">${d.name}</label>`
+    const iosChecks = deviceList.filter(d=>['iOS','iPad'].includes(d.platform)).map(d=>
+      `<label class="device-check-item"><input type="checkbox" class="device-check" data-platform="${d.platform}" data-name="${d.name}" data-os="${d.os}">${d.name}</label>`
     ).join('');
     noteInner = `
       <label>Device Name</label>
       <div class="device-groups">
         <div class="device-group"><div class="device-group-title">Android</div><div class="device-check-list">${androidChecks}</div></div>
-        <div class="device-group"><div class="device-group-title">iOS</div><div class="device-check-list">${iosChecks}</div></div>
+        <div class="device-group"><div class="device-group-title">iOS / iPad</div><div class="device-check-list">${iosChecks}</div></div>
       </div>
       <input type="text" class="other-devices-input" id="deviceOtherInput" placeholder="Other device(s) not listed, comma separated">
       <div class="hint">Checking a device here auto-selects its OS below</div>
     `;
   } else if (q.id === 20){
-    const uniqueOS = (platform) => {
+    const uniqueOS = (platformGroup) => {
       const seen = [];
-      deviceList.filter(d=>d.platform===platform).forEach(d=>{ if (!seen.includes(d.os)) seen.push(d.os); });
+      deviceList.filter(d=> platformGroup.includes(d.platform)).forEach(d=>{ if (!seen.includes(d.os)) seen.push(d.os); });
       return seen;
     };
-    const androidOSChecks = uniqueOS('Android').map(os=>
+    const androidOSChecks = uniqueOS(['Android']).map(os=>
       `<label class="device-check-item"><input type="checkbox" class="os-check" data-platform="Android" data-os="${os}">${os}</label>`
     ).join('');
-    const iosOSChecks = uniqueOS('iOS').map(os=>
+    const iosOSChecks = uniqueOS(['iOS', 'iPad']).map(os=>
       `<label class="device-check-item"><input type="checkbox" class="os-check" data-platform="iOS" data-os="${os}">${os}</label>`
     ).join('');
     noteInner = `
       <label>OS Name</label>
       <div class="device-groups">
         <div class="device-group"><div class="device-group-title">Android</div><div class="device-check-list">${androidOSChecks}</div></div>
-        <div class="device-group"><div class="device-group-title">iOS</div><div class="device-check-list">${iosOSChecks}</div></div>
+        <div class="device-group"><div class="device-group-title">iOS / iPadOS</div><div class="device-check-list">${iosOSChecks}</div></div>
       </div>
       <input type="text" class="other-devices-input" id="osOtherInput" placeholder="Other OS version(s) not covered above, comma separated">
       <div class="os-summary-box empty" id="osSummaryDisplay">Select devices in item 19 to auto-check OS versions</div>
@@ -730,7 +753,6 @@ questions.forEach(q=>{
   listEl.appendChild(row);
 });
 
-/* Device (19) -> OS (20) auto-sync */
 function recomputeDeviceAndOS(){
   const checkedDevices = Array.from(document.querySelectorAll('.device-check:checked'));
   const otherDevicesRaw = (document.getElementById('deviceOtherInput')?.value || '').trim();
@@ -738,14 +760,16 @@ function recomputeDeviceAndOS(){
   const deviceNames = [...checkedDevices.map(c=>c.dataset.name), ...otherDevices];
   state[19].note = deviceNames.join(', ');
 
-  // Auto-check the OS boxes that correspond to currently checked devices
-  const neededOS = new Set(checkedDevices.map(c=>c.dataset.platform + '|' + c.dataset.os));
+  const neededOS = new Set(checkedDevices.map(c=> {
+    const platformGroup = ['iOS', 'iPad'].includes(c.dataset.platform) ? 'iOS' : 'Android';
+    return platformGroup + '|' + c.dataset.os;
+  }));
+  
   document.querySelectorAll('.os-check').forEach(cb=>{
     const key = cb.dataset.platform + '|' + cb.dataset.os;
     if (neededOS.has(key)) cb.checked = true;
   });
 
-  // Build OS Name note from whatever OS boxes are checked (auto + manual)
   const checkedOS = Array.from(document.querySelectorAll('.os-check:checked'));
   const androidOS = checkedOS.filter(c=>c.dataset.platform==='Android').map(c=>c.dataset.os);
   const iosOS = checkedOS.filter(c=>c.dataset.platform==='iOS').map(c=>c.dataset.os);
@@ -754,7 +778,7 @@ function recomputeDeviceAndOS(){
 
   const osParts = [];
   if (androidOS.length) osParts.push('Android: ' + androidOS.join(', '));
-  if (iosOS.length) osParts.push('iOS: ' + iosOS.join(', '));
+  if (iosOS.length) osParts.push('iOS/iPadOS: ' + iosOS.join(', '));
   if (otherOS.length) osParts.push('Other: ' + otherOS.join(', '));
   const osSummary = osParts.join(' | ');
   state[20].note = osSummary;
@@ -783,9 +807,16 @@ listEl.addEventListener('click', (e)=>{
   if (!btn) return;
   const id = btn.dataset.id;
   const val = btn.dataset.val;
-  state[id].answer = val;
-  document.querySelectorAll(`.yn-btn[data-id="${id}"]`).forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  
+  if (state[id].answer === val) {
+    state[id].answer = null;
+    btn.classList.remove('active');
+  } else {
+    state[id].answer = val;
+    document.querySelectorAll(`.yn-btn[data-id="${id}"]`).forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  
   updateNoteVisibility(id);
   updateProgress();
 });
@@ -795,8 +826,6 @@ listEl.addEventListener('input', (e)=>{
     const id = e.target.id.replace('note-','');
     if (state[id]) state[id].note = e.target.value;
 
-    // Auto-sync: if the Firebase check note (Q1) or TestLink check note (Q17)
-    // contains a link, mirror it into the matching header link field.
     if (id === '1' && state[id].answer === 'Yes'){
       const val = e.target.value.trim();
       if (val) document.getElementById('firebaseLink').value = val;
@@ -835,9 +864,30 @@ function updateProgress(){
   }
 }
 
-// Exact question line text as it appears in the original reference document,
-// starting right after "N. " and running through to the end of the line.
-// Kept verbatim (including original spacing quirks) so ideal/updated output matches it exactly.
+function resetChecklist() {
+  if (!confirm('Are you sure you want to reset all checklist options?')) return;
+  
+  questions.forEach(q => {
+    state[q.id] = { answer: null, note: q.defaultNote || '' };
+    updateNoteVisibility(q.id);
+    const textInput = document.getElementById(`note-${q.id}`);
+    if (textInput) textInput.value = q.defaultNote || '';
+  });
+
+  document.querySelectorAll('.yn-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.device-check, .os-check').forEach(cb => cb.checked = false);
+
+  const devOther = document.getElementById('deviceOtherInput');
+  if (devOther) devOther.value = '';
+
+  const osOther = document.getElementById('osOtherInput');
+  if (osOther) osOther.value = '';
+
+  recomputeDeviceAndOS();
+  updateProgress();
+  document.getElementById('checklistOutput').value = '';
+}
+
 const idealLineText = {
   1: 'Have you checked the app on Firebase? => (Yes/No) (Note: if Yes then mention the Firebase Report Link above)',
   2: 'Have you verified the updated Application Version? => (Yes/No)',
@@ -861,7 +911,6 @@ const idealLineText = {
   20: 'Have you tested the application in all OS? => (Yes/No) (Note: if Yes then mention the all OS)(OS Name : )'
 };
 
-// For the 3 items where the note itself IS the only fillable spot (no separate blank field).
 const inlineNoteLabel = { 1: 'Note', 7: 'Note ', 17: 'Note' };
 
 function buildUpdatedLine(id, answer, noteValue){
@@ -874,9 +923,8 @@ function buildUpdatedLine(id, answer, noteValue){
   if (inlineNoteLabel[id] !== undefined){
     if (noteValue){
       after = ` (${inlineNoteLabel[id]}: ${noteValue})`;
-    } // else leave the original instructional note text as-is
+    }
   } else if (/:\s*\)\s*$/.test(after)){
-    // fills the trailing blank field, e.g. "(issue no : )" / "(Device Name : )" / "(OS Name : )"
     if (noteValue){
       after = after.replace(/:\s*\)\s*$/, ': ' + noteValue + ')');
     }
@@ -926,7 +974,6 @@ function generateChecklistReport(mode){
   out.value = lines.join('\n').trim() + '\n';
 }
 
-/* ---------------- Copy helper ---------------- */
 function copyBox(textareaId, feedbackId){
   const el = document.getElementById(textareaId);
   if (!el.value){ return; }
