@@ -62,8 +62,8 @@
   .tabs{ display:flex; gap:6px; margin-bottom: -1px; position:relative; z-index:2; }
   .tab-btn{
     font-family:'Space Grotesk', sans-serif;
-    font-weight:600; font-size:14.5px;
-    padding: 12px 22px 13px;
+    font-weight:600; font-size:14px;
+    padding: 12px 20px 13px;
     background: #E2E7DD;
     border: 1px solid var(--line);
     border-bottom:none;
@@ -124,7 +124,7 @@
   .manual-tag{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:11.5px; }
 
   .dropzone{
-    position:relative; border:1.5px dashed var(--line); border-radius:99px;
+    position:relative; border:1.5px dashed var(--line); border-radius:9px;
     background:#F5F7F2; padding:16px 12px; text-align:center; cursor:pointer;
     transition: border-color .15s ease, background .15s ease;
   }
@@ -286,6 +286,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="size">App Size Check</button>
     <button class="tab-btn" data-tab="checklist">QA Checklist</button>
+    <button class="tab-btn" data-tab="crashes">Crash Finder</button>
   </div>
 
   <div class="panel-shell">
@@ -422,6 +423,12 @@
       </div>
     </div>
 
+    <!-- ===================== TAB 3: CRASH FINDER ===================== -->
+    <div class="tab-panel" id="tab-crashes">
+      <h2 class="section-title">Crash finder</h2>
+      <p class="section-sub">coming soon</p>
+    </div>
+
   </div>
 </div>
 
@@ -434,7 +441,6 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.classList.add('active');
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
     
-    // Toggle the corner "Clear All Options" visibility depending on tab
     const clearAllBtn = document.getElementById('checklistClearAllContainer');
     if(btn.dataset.tab === 'checklist') {
       clearAllBtn.style.display = 'block';
@@ -498,19 +504,6 @@ function buildSizeHistorySection(hist, currentVersion){
     const marker = h.version === currentVersion ? ' <-- current' : '';
     lines.push(h.version + ': ' + h.sizeMB.toFixed(2) + ' MB' + deltaTxt + marker);
     prev = h.sizeMB;
-  });
-  return lines.join('\n');
-}
-function buildChecklistHistorySection(hist, currentVersion){
-  const withChecklist = hist.filter(h=>typeof h.yesCount === 'number');
-  if (withChecklist.length === 0) return '';
-  const lines = [];
-  lines.push('');
-  lines.push('VERSION HISTORY — CHECKLIST PASS RATE (last ' + withChecklist.length + ' of 5 tracked)');
-  lines.push('------------------------------------------------');
-  withChecklist.forEach(h=>{
-    const marker = h.version === currentVersion ? ' <-- current' : '';
-    lines.push(h.version + ': ' + h.yesCount + '/' + h.total + ' Yes, ' + h.noCount + ' No' + marker);
   });
   return lines.join('\n');
 }
@@ -666,8 +659,8 @@ const questions = [
   {id:3, text:'Have you verified Display AppName (this name will show inside App in Home screen)?', noteType:'onNo'},
   {id:4, text:'Have you checked all permission?', noteType:'onNo'},
   {id:5, text:'Have you verified APP UI Testing as per Design?', noteType:'onNo'},
-  {id:6, text:'Have you checked App notification?', noteType:'onNo'},
-  {id:7, text:'Have you verified OneSignal Id (Notification for new app)?', noteType:'always', noteLabel:'Note', defaultNote:'Not added onesignal'},
+  {id:6, text:'Have you checked App notification?', noteType:'onYes'},
+  {id:7, text:'Have you verified OneSignal Id (Notification for new app)?', noteType:'onYes', noteLabel:'Note', hint:'Not added onesignal', defaultNote:'Not added onesignal'},
   {id:8, text:'Have you verified AdMob Ids (Banner, Interstitial, Rewarded, Native)?', noteType:'onNo'},
   {id:9, text:'Have you performed all manual scenario?', noteType:'onNo'},
   {id:10, text:'Have you performed all click events with redirection?', noteType:'onNo'},
@@ -675,8 +668,8 @@ const questions = [
   {id:12, text:'Have you performed Live Payment with all plans?', noteType:'onNo'},
   {id:13, text:'Have you checked the updated list which provides by the developer in the release ticket?', noteType:'onNo'},
   {id:14, text:'Have you checked the old app version to the new app version?', noteType:'onNo'},
-  {id:15, text:'Did you verify the common app issue from above mention sheet and resolve it in your app?', noteType:'always', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
-  {id:16, text:'Did you ask the developer, Is old version open issues resolved in this update?', noteType:'always', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
+  {id:15, text:'Did you verify the common app issue from above mention sheet and resolve it in your app?', noteType:'onYes', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
+  {id:16, text:'Did you ask the developer, Is old version open issues resolved in this update?', noteType:'onYes', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
   {id:17, text:'Have you checked all modules as per TestLink?', noteType:'onYes', noteLabel:'Note', hint:'If Yes, reference the TestLink Report Link above'},
   {id:18, text:'Have you checked User Acceptance Testing?', noteType:'onNo'},
   {id:19, text:'Have you tested the application in all devices?', noteType:'onYes', noteLabel:'Device Name', hint:'List all device names tested'},
@@ -753,22 +746,49 @@ questions.forEach(q=>{
   listEl.appendChild(row);
 });
 
-function recomputeDeviceAndOS(){
+// Mutual bi-directional auto selection logic for Devices & OS Checkboxes
+function handleDeviceCheckboxChange(clickedCb) {
+  const isChecked = clickedCb.checked;
+  const platformGroup = ['iOS', 'iPad'].includes(clickedCb.dataset.platform) ? 'iOS' : 'Android';
+  const osVal = clickedCb.dataset.os;
+
+  if (isChecked) {
+    const osCb = document.querySelector(`.os-check[data-platform="${platformGroup}"][data-os="${osVal}"]`);
+    if (osCb) osCb.checked = true;
+  } else {
+    const otherCheckedDevicesWithSameOS = document.querySelectorAll(`.device-check:checked[data-os="${osVal}"]`);
+    const hasStillActive = Array.from(otherCheckedDevicesWithSameOS).some(c => {
+      const pGroup = ['iOS', 'iPad'].includes(c.dataset.platform) ? 'iOS' : 'Android';
+      return pGroup === platformGroup;
+    });
+    if (!hasStillActive) {
+      const osCb = document.querySelector(`.os-check[data-platform="${platformGroup}"][data-os="${osVal}"]`);
+      if (osCb) osCb.checked = false;
+    }
+  }
+  recomputeDeviceAndOSSummary();
+}
+
+function handleOSCheckboxChange(clickedCb) {
+  const isChecked = clickedCb.checked;
+  const platformGroup = clickedCb.dataset.platform;
+  const osVal = clickedCb.dataset.os;
+
+  document.querySelectorAll('.device-check').forEach(devCb => {
+    const devPlatformGroup = ['iOS', 'iPad'].includes(devCb.dataset.platform) ? 'iOS' : 'Android';
+    if (devPlatformGroup === platformGroup && devCb.dataset.os === osVal) {
+      devCb.checked = isChecked;
+    }
+  });
+  recomputeDeviceAndOSSummary();
+}
+
+function recomputeDeviceAndOSSummary(){
   const checkedDevices = Array.from(document.querySelectorAll('.device-check:checked'));
   const otherDevicesRaw = (document.getElementById('deviceOtherInput')?.value || '').trim();
   const otherDevices = otherDevicesRaw ? otherDevicesRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
   const deviceNames = [...checkedDevices.map(c=>c.dataset.name), ...otherDevices];
   state[19].note = deviceNames.join(', ');
-
-  const neededOS = new Set(checkedDevices.map(c=> {
-    const platformGroup = ['iOS', 'iPad'].includes(c.dataset.platform) ? 'iOS' : 'Android';
-    return platformGroup + '|' + c.dataset.os;
-  }));
-  
-  document.querySelectorAll('.os-check').forEach(cb=>{
-    const key = cb.dataset.platform + '|' + cb.dataset.os;
-    if (neededOS.has(key)) cb.checked = true;
-  });
 
   const checkedOS = Array.from(document.querySelectorAll('.os-check:checked'));
   const androidOS = checkedOS.filter(c=>c.dataset.platform==='Android').map(c=>c.dataset.os);
@@ -796,10 +816,15 @@ function recomputeDeviceAndOS(){
 }
 
 listEl.addEventListener('change', (e)=>{
-  if (e.target.classList.contains('device-check') || e.target.classList.contains('os-check')) recomputeDeviceAndOS();
+  if (e.target.classList.contains('device-check')) {
+    handleDeviceCheckboxChange(e.target);
+  } else if (e.target.classList.contains('os-check')) {
+    handleOSCheckboxChange(e.target);
+  }
 });
+
 listEl.addEventListener('input', (e)=>{
-  if (e.target.id === 'deviceOtherInput' || e.target.id === 'osOtherInput') recomputeDeviceAndOS();
+  if (e.target.id === 'deviceOtherInput' || e.target.id === 'osOtherInput') recomputeDeviceAndOSSummary();
 });
 
 listEl.addEventListener('click', (e)=>{
@@ -883,7 +908,7 @@ function resetChecklist() {
   const osOther = document.getElementById('osOtherInput');
   if (osOther) osOther.value = '';
 
-  recomputeDeviceAndOS();
+  recomputeDeviceAndOSSummary();
   updateProgress();
   document.getElementById('checklistOutput').value = '';
 }
@@ -911,7 +936,7 @@ const idealLineText = {
   20: 'Have you tested the application in all OS? => (Yes/No) (Note: if Yes then mention the all OS)(OS Name : )'
 };
 
-const inlineNoteLabel = { 1: 'Note', 7: 'Note ', 17: 'Note' };
+const inlineNoteLabel = { 1: 'Note', 6: 'Note', 7: 'Note ', 17: 'Note' };
 
 function buildUpdatedLine(id, answer, noteValue){
   const full = idealLineText[id];
@@ -966,9 +991,7 @@ function generateChecklistReport(mode){
   if (mode !== 'ideal'){
     const yesCount = questions.filter(q=>state[q.id].answer === 'Yes').length;
     const noCount = questions.filter(q=>state[q.id].answer === 'No').length;
-    const hist = upsertHistoryEntry({ yesCount, noCount, total: questions.length });
-    const historySection = buildChecklistHistorySection(hist, currentVersionLabel());
-    if (historySection) lines.push(historySection);
+    upsertHistoryEntry({ yesCount, noCount, total: questions.length });
   }
 
   out.value = lines.join('\n').trim() + '\n';
