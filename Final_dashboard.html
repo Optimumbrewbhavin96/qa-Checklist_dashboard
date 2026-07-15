@@ -264,6 +264,12 @@
   }
   .os-summary-box.empty{ color:var(--muted); font-style:italic; }
 
+  /* Required input highlight border */
+  .field input.error-highlight {
+    border-color: var(--rust) !important;
+    background-color: var(--rust-bg) !important;
+  }
+
   @media (max-width: 640px){
     .field-row{ grid-template-columns: 1fr; }
     .q-top{ flex-direction:column; }
@@ -286,7 +292,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="size">App Size Check</button>
     <button class="tab-btn" data-tab="checklist">QA Checklist</button>
-    <button class="tab-btn" data-tab="crashes">Crash Finder</button>
+    <button class="tab-btn" data-tab="crashes">Crash finder</button>
   </div>
 
   <div class="panel-shell">
@@ -382,8 +388,8 @@
 
       <div class="meta-grid">
         <div class="field">
-          <label for="ticketLink">Release Ticket Link</label>
-          <input type="text" id="ticketLink" placeholder="Paste release ticket URL">
+          <label for="ticketLink">Release Ticket Link <span style="color:var(--rust);">*</span></label>
+          <input type="text" id="ticketLink" placeholder="Paste release ticket URL (Required)">
         </div>
         <div class="field">
           <label for="appsDetailsLink">Apps Details (sheet)</label>
@@ -654,7 +660,7 @@ const deviceList = [
 ];
 
 const questions = [
-  {id:1, text:'Have you checked the app on Firebase?', noteType:'onYes', noteLabel:'Note', hint:'If Yes, reference the Firebase Report Link above'},
+  {id:1, text:'Have you checked the app on Firebase?', noteType:'onNo', noteLabel:'Note', hint:'If Yes, reference the Firebase Report Link above'},
   {id:2, text:'Have you verified the updated Application Version?', noteType:'onNo'},
   {id:3, text:'Have you verified Display AppName (this name will show inside App in Home screen)?', noteType:'onNo'},
   {id:4, text:'Have you checked all permission?', noteType:'onNo'},
@@ -677,7 +683,9 @@ const questions = [
 ];
 
 const state = {};
-questions.forEach(q=>{ state[q.id] = {answer:null, note: q.defaultNote || ''}; });
+questions.forEach(q=>{ 
+  state[q.id] = {answer: (q.id === 1 ? 'No' : null), note: q.defaultNote || ''}; 
+});
 
 const listEl = document.getElementById('questionList');
 
@@ -746,7 +754,27 @@ questions.forEach(q=>{
   listEl.appendChild(row);
 });
 
-// Mutual bi-directional auto selection logic for Devices & OS Checkboxes
+/* Firebase Link Auto Selection Logic */
+const firebaseInput = document.getElementById('firebaseLink');
+firebaseInput.addEventListener('input', () => {
+  const value = firebaseInput.value.trim();
+  if (value !== '') {
+    updateQuestionAnswer(1, 'Yes');
+  } else {
+    updateQuestionAnswer(1, 'No');
+  }
+});
+
+function updateQuestionAnswer(id, val) {
+  state[id].answer = val;
+  document.querySelectorAll(`.yn-btn[data-id="${id}"]`).forEach(b => {
+    if (b.dataset.val === val) b.classList.add('active');
+    else b.classList.remove('active');
+  });
+  updateNoteVisibility(id);
+  updateProgress();
+}
+
 function handleDeviceCheckboxChange(clickedCb) {
   const isChecked = clickedCb.checked;
   const platformGroup = ['iOS', 'iPad'].includes(clickedCb.dataset.platform) ? 'iOS' : 'Android';
@@ -870,6 +898,10 @@ function updateNoteVisibility(id){
   if (q.noteType === 'always') show = true;
   else if (q.noteType === 'onYes' && ans === 'Yes') show = true;
   else if (q.noteType === 'onNo' && ans === 'No') show = true;
+
+  // Enforce absolute rule: Question 1 always hides Note element visually when NO is picked
+  if (id == 1 && ans === 'No') show = false;
+
   wrap.classList.toggle('visible', show);
 }
 
@@ -893,13 +925,17 @@ function resetChecklist() {
   if (!confirm('Are you sure you want to reset all checklist options?')) return;
   
   questions.forEach(q => {
-    state[q.id] = { answer: null, note: q.defaultNote || '' };
+    state[q.id] = { answer: (q.id === 1 ? 'No' : null), note: q.defaultNote || '' };
     updateNoteVisibility(q.id);
     const textInput = document.getElementById(`note-${q.id}`);
     if (textInput) textInput.value = q.defaultNote || '';
   });
 
+  document.getElementById('ticketLink').value = '';
+  document.getElementById('ticketLink').classList.remove('error-highlight');
   document.querySelectorAll('.yn-btn').forEach(btn => btn.classList.remove('active'));
+  
+  document.querySelector(`.yn-btn[data-id="1"][data-val="No"]`).classList.add('active');
   document.querySelectorAll('.device-check, .os-check').forEach(cb => cb.checked = false);
 
   const devOther = document.getElementById('deviceOtherInput');
@@ -945,7 +981,10 @@ function buildUpdatedLine(id, answer, noteValue){
   let after = full.slice(idx + '(Yes/No)'.length);
   const ansText = answer || '(Yes/No)';
 
-  if (inlineNoteLabel[id] !== undefined){
+  // Completely strips out the note section text for Question 1 globally
+  if (id === 1) {
+    after = ''; 
+  } else if (inlineNoteLabel[id] !== undefined){
     if (noteValue){
       after = ` (${inlineNoteLabel[id]}: ${noteValue})`;
     }
@@ -959,10 +998,34 @@ function buildUpdatedLine(id, answer, noteValue){
 
 function generateChecklistReport(mode){
   const out = document.getElementById('checklistOutput');
-  const ticket = document.getElementById('ticketLink').value.trim();
+  const ticketInput = document.getElementById('ticketLink');
+  const ticket = ticketInput.value.trim();
   const appsLink = document.getElementById('appsDetailsLink').value.trim();
   const testlink = document.getElementById('testlinkLink').value.trim();
   const firebase = document.getElementById('firebaseLink').value.trim();
+
+  if (mode === 'updated') {
+    let failedFields = [];
+    ticketInput.classList.remove('error-highlight');
+
+    if (!ticket) {
+      failedFields.push('- Release Ticket Link is missing');
+      ticketInput.classList.add('error-highlight');
+    }
+    
+    [11, 12, 14].forEach(id => {
+      if (state[id].answer !== 'Yes') {
+        const qText = questions.find(q => q.id === id).text;
+        failedFields.push(`- Question ${id} ("${qText}") must be answered YES.`);
+      }
+    });
+
+    if (failedFields.length > 0) {
+      alert("Cannot generate report due to missing requirements:\n\n" + failedFields.join("\n"));
+      out.value = '';
+      return;
+    }
+  }
 
   const lines = [];
   lines.push('h2. CheckList');
@@ -1011,7 +1074,8 @@ function copyBox(textareaId, feedbackId){
   });
 }
 
-/* init */
+/* initial state triggers */
+document.querySelector(`.yn-btn[data-id="1"][data-val="No"]`).classList.add('active');
 computeSize();
 updateProgress();
 </script>
