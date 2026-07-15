@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Release Inspection — QA Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EEF1EC;
+    --surface: #FBFBF8;
+    --ink: #1E2A22;
+    --muted: #5B6B5F;
+    --line: #C9D2C4;
+    --line-soft: #DEE4D9;
+    --green: #3F7A5D;
+    --green-bg: #E7F0EA;
+    --amber: #C7861F;
+    --amber-bg: #FBF0DD;
+    --rust: #B8503B;
+    --rust-bg: #F8E7E2;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.6), transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding: 28px 16px 60px;
+  }
+  .wrap{ max-width: 920px; margin:0 auto; }
+
+  /* Header */
+  .masthead{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:20px; margin-bottom: 22px; flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 28px; font-weight:700; margin:0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .masthead p{ margin:0; color:var(--muted); font-size:14px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:6px; display:block;
+  }
+
+  /* Tabs styled like folder tabs */
+  .tabs{ display:flex; gap:6px; margin-bottom: -1px; position:relative; z-index:2; }
+  .tab-btn{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:14.5px;
+    padding: 12px 22px 13px;
+    background: #E2E7DD;
+    border: 1px solid var(--line);
+    border-bottom:none;
+    border-radius: 10px 10px 0 0;
+    color: var(--muted);
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .tab-btn.active{
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 -2px 0 rgba(0,0,0,0.02) inset;
+  }
+  .tab-btn:not(.active):hover{ background:#D9E0D2; }
+
+  .panel-shell{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: 0 12px 12px 12px;
+    padding: 28px;
+    position:relative;
+  }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  h2.section-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:19px; margin: 0 0 4px;
+  }
+  .section-sub{ color:var(--muted); font-size:13.5px; margin:0 0 22px; }
+
+  /* Form grid */
+  .field-row{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field label{ font-size:12.5px; font-weight:600; color:var(--muted); }
+  .field input[type=text], .field input[type=number], .field textarea{
+    font-family:'Inter', sans-serif; font-size:14px;
+    padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+    background:#fff; color:var(--ink); width:100%;
+  }
+  .field input:focus, .field textarea:focus{ outline:2px solid var(--green); outline-offset:1px; }
+  .field textarea{ resize:vertical; min-height:70px; font-family:'Inter', sans-serif; }
+  .unit-suffix{ position:relative; }
+  .unit-suffix span{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    font-size:12px; color:var(--muted); font-family:'IBM Plex Mono', monospace;
+    pointer-events:none;
+  }
+  .manual-tag{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:11.5px; }
+
+  .dropzone{
+    position:relative; border:1.5px dashed var(--line); border-radius:9px;
+    background:#F5F7F2; padding:16px 12px; text-align:center; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover{ border-color: var(--green); background:#F0F5EE; }
+  .dropzone.dragover{ border-color: var(--green); background:var(--green-bg); }
+  .dropzone.filled{ border-style:solid; border-color:var(--green); background:var(--green-bg); }
+  .dropzone input[type=file]{
+    position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer;
+  }
+  .dropzone-text{
+    font-size:12.5px; color:var(--muted); font-family:'IBM Plex Mono', monospace;
+    pointer-events:none; word-break:break-all;
+  }
+  .dropzone.filled .dropzone-text{ color:var(--green); font-weight:600; }
+
+  /* Stamp / signature element */
+  .stamp-row{ display:flex; align-items:center; gap:22px; margin: 20px 0 24px; flex-wrap:wrap; }
+  .stamp{
+    width:120px; height:120px; border-radius:50%;
+    border: 3px solid currentColor;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    text-align:center; line-height:1.15; font-size:13px;
+    letter-spacing:0.03em; text-transform:uppercase;
+    position:relative; flex-shrink:0;
+    transform: rotate(-6deg);
+    transition: color .2s ease, border-color .2s ease;
+  }
+  .stamp::before{
+    content:''; position:absolute; inset:6px; border:1px solid currentColor; border-radius:50%; opacity:0.5;
+  }
+  .stamp.green{ color:var(--green); }
+  .stamp.amber{ color:var(--amber); }
+  .stamp.rust{ color:var(--rust); }
+  .stamp.neutral{ color: var(--muted); }
+
+  .stat-block{ font-family:'IBM Plex Mono', monospace; }
+  .stat-line{ display:flex; gap:10px; font-size:14px; margin-bottom:4px; }
+  .stat-line .k{ color:var(--muted); min-width:150px; }
+  .stat-line .v{ font-weight:600; }
+  .stat-line .v.green{ color:var(--green); }
+  .stat-line .v.amber{ color:var(--amber); }
+  .stat-line .v.rust{ color:var(--rust); }
+
+  .hint-box{
+    font-size:12.5px; color:var(--muted); background:#F2F4EF; border:1px dashed var(--line);
+    border-radius:8px; padding:10px 12px; margin: 4px 0 20px;
+  }
+
+  button.primary{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14px;
+    background: var(--ink); color: var(--surface);
+    border:none; border-radius:8px; padding:11px 20px; cursor:pointer;
+    transition: transform .12s ease, background .15s ease;
+  }
+  button.primary:hover{ background:#0F1712; }
+  button.primary:active{ transform: scale(0.98); }
+  button.ghost{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px;
+    background:transparent; color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; padding:9px 16px; cursor:pointer;
+  }
+  button.ghost:hover{ background:#F0F3EC; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin: 6px 0 18px; }
+
+  .output-box{
+    margin-top:8px;
+  }
+  .output-box textarea{
+    width:100%; min-height:260px; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    line-height:1.6; padding:14px; border:1px solid var(--line); border-radius:8px;
+    background:#F9FAF7; color:var(--ink); white-space:pre;
+  }
+  .copy-feedback{ font-size:12px; color:var(--green); font-family:'IBM Plex Mono', monospace; margin-left:8px; opacity:0; transition:opacity .2s; }
+  .copy-feedback.show{ opacity:1; }
+
+  hr.divider{ border:none; border-top:1px solid var(--line-soft); margin: 26px 0; }
+
+  /* Checklist header fields */
+  .meta-grid{ display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom: 20px; }
+
+  /* Progress stamp */
+  .progress-wrap{ display:flex; align-items:center; gap:18px; margin-bottom:22px; }
+  .progress-bar-track{
+    flex:1; height:8px; background:#E2E7DD; border-radius:999px; overflow:hidden; border:1px solid var(--line);
+  }
+  .progress-bar-fill{ height:100%; background:var(--green); width:0%; transition: width .25s ease; }
+  .progress-label{ font-family:'IBM Plex Mono', monospace; font-size:13px; white-space:nowrap; color:var(--muted); }
+
+  /* Question rows */
+  .q-row{
+    border:1px solid var(--line-soft); border-radius:10px; padding:14px 16px; margin-bottom:10px;
+    background:#fff;
+  }
+  .q-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+  .q-text{ font-size:14px; line-height:1.45; flex:1; }
+  .q-num{ font-family:'IBM Plex Mono', monospace; color:var(--muted); font-size:12.5px; margin-right:6px; }
+  .yn-toggle{ display:flex; gap:6px; flex-shrink:0; }
+  .yn-btn{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px;
+    padding:7px 14px; border-radius:7px; border:1px solid var(--line); background:#fff; color:var(--muted);
+    cursor:pointer; min-width:52px;
+  }
+  .yn-btn.yes.active{ background:var(--green-bg); border-color:var(--green); color:var(--green); }
+  .yn-btn.no.active{ background:var(--rust-bg); border-color:var(--rust); color:var(--rust); }
+  .q-note{ margin-top:10px; display:none; }
+  .q-note.visible{ display:block; }
+  .q-note input{
+    width:100%; font-family:'Inter', sans-serif; font-size:13px;
+    padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:#F9FAF7;
+  }
+  .q-note label{ font-size:11.5px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px; }
+  .q-note .hint{ font-size:11px; color:var(--muted); margin-top:3px; font-style:italic; }
+
+  @media (max-width: 640px){
+    .field-row{ grid-template-columns: 1fr; }
+    .q-top{ flex-direction:column; }
+    .stamp{ width:100px; height:100px; font-size:11.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <span class="eyebrow">Pre-release inspection</span>
+      <h1>Release QA Dashboard</h1>
+      <p>Check app size deltas and walk the release checklist before sign-off.</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="size">App Size Check</button>
+    <button class="tab-btn" data-tab="checklist">QA Checklist</button>
+  </div>
+
+  <div class="panel-shell">
+
+    <!-- ===================== TAB 1: APP SIZE ===================== -->
+    <div class="tab-panel active" id="tab-size">
+      <h2 class="section-title">App size comparison</h2>
+      <p class="section-sub">Upload the old and new APK or AAB (Android App Bundle) file — size is read straight from the file. Or type sizes in manually.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="oldApkFile">Old build file (APK or AAB)</label>
+          <div class="dropzone" id="oldDropzone">
+            <input type="file" id="oldApkFile" accept=".apk,.aab">
+            <div class="dropzone-text" id="oldDropzoneText">Choose or drop the old APK/AAB</div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="newApkFile">New build file (APK or AAB)</label>
+          <div class="dropzone" id="newDropzone">
+            <input type="file" id="newApkFile" accept=".apk,.aab">
+            <div class="dropzone-text" id="newDropzoneText">Choose or drop the new APK/AAB</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="oldSize">Old APK size <span class="manual-tag">(auto-filled, or type it in)</span></label>
+          <div class="unit-suffix">
+            <input type="number" id="oldSize" placeholder="e.g. 24.5" step="0.01" min="0">
+            <span>MB</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="newSize">New APK size <span class="manual-tag">(auto-filled, or type it in)</span></label>
+          <div class="unit-suffix">
+            <input type="number" id="newSize" placeholder="e.g. 27.1" step="0.01" min="0">
+            <span>MB</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:18px;">
+        <label for="sizeChangeNote">What changed in this release? (optional — helps justify the size delta)</label>
+        <textarea id="sizeChangeNote" placeholder="e.g. added new SDK for payments, added 3 new screens with images, updated video assets..."></textarea>
+      </div>
+
+      <div class="stamp-row">
+        <div class="stamp neutral" id="sizeStamp">ENTER<br>SIZES</div>
+        <div class="stat-block">
+          <div class="stat-line"><span class="k">Difference</span><span class="v" id="statDiff">—</span></div>
+          <div class="stat-line"><span class="k">% change</span><span class="v" id="statPct">—</span></div>
+          <div class="stat-line"><span class="k">Assessment</span><span class="v" id="statVerdict">—</span></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        General guide only — always weigh against what actually changed: <strong>≤15%</strong> increase is typically normal for routine updates · <strong>15–40%</strong> warrants a quick look at what was added · <strong>&gt;40%</strong> is worth confirming with the developer before sign-off.<br><br>
+        Note on AAB: an .aab file's raw size is a proxy, not the exact size users download — Play Store generates optimized, device-specific split APKs from it. For the most accurate download-size comparison, use the APK when possible, or compare the "Estimated download size" from the Play Console for both builds.
+      </div>
+
+      <div class="btn-row">
+        <button class="primary" onclick="generateSizeReport()">Generate size report</button>
+        <button class="ghost" onclick="copyBox('sizeOutput','sizeCopyFeedback')">Copy report</button>
+        <span class="copy-feedback" id="sizeCopyFeedback">Copied ✓</span>
+      </div>
+
+      <div class="output-box">
+        <textarea id="sizeOutput" readonly placeholder="Your generated report will appear here..."></textarea>
+      </div>
+    </div>
+
+    <!-- ===================== TAB 2: CHECKLIST ===================== -->
+    <div class="tab-panel" id="tab-checklist">
+      <h2 class="section-title">QA release checklist</h2>
+      <p class="section-sub">Answer Yes/No for each item. If you pick No, add a short note explaining why. A few items always ask for a detail.</p>
+
+      <div class="meta-grid">
+        <div class="field">
+          <label for="ticketLink">Release Ticket Link</label>
+          <input type="text" id="ticketLink" placeholder="Paste release ticket URL">
+        </div>
+        <div class="field">
+          <label for="appsDetailsLink">Apps Details (sheet)</label>
+          <input type="text" id="appsDetailsLink" value="https://docs.google.com/spreadsheets/d/1RpnBSr6ewOa4Rx6RQxal2nni1Oq39Lc0ZPMP0xcZO24/edit?usp=sharing">
+        </div>
+        <div class="field">
+          <label for="testlinkLink">TestLink Report Link</label>
+          <input type="text" id="testlinkLink" placeholder="Paste TestLink report URL">
+        </div>
+        <div class="field">
+          <label for="firebaseLink">Firebase Report Link</label>
+          <input type="text" id="firebaseLink" placeholder="Paste Firebase report URL">
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="stamp neutral" id="checklistStamp" style="width:88px;height:88px;font-size:11px;">0/20</div>
+        <div style="flex:1;">
+          <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+          <div class="progress-label" id="progressLabel">0 of 20 answered</div>
+        </div>
+      </div>
+
+      <div id="questionList"></div>
+
+      <hr class="divider">
+
+      <div class="btn-row">
+        <button class="primary" onclick="generateChecklistReport('updated')">Generate completed report</button>
+        <button class="ghost" onclick="copyBox('checklistOutput','checklistCopyFeedback')">Copy report</button>
+        <button class="ghost" onclick="generateChecklistReport('ideal')">Load blank template</button>
+        <span class="copy-feedback" id="checklistCopyFeedback">Copied ✓</span>
+      </div>
+
+      <div class="output-box">
+        <textarea id="checklistOutput" readonly placeholder="Your generated checklist report will appear here..."></textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ---------------- Tabs ---------------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------------- App size tab ---------------- */
+const oldSizeInput = document.getElementById('oldSize');
+const newSizeInput = document.getElementById('newSize');
+const sizeStamp = document.getElementById('sizeStamp');
+const statDiff = document.getElementById('statDiff');
+const statPct = document.getElementById('statPct');
+const statVerdict = document.getElementById('statVerdict');
+
+function computeSize(){
+  const oldV = parseFloat(oldSizeInput.value);
+  const newV = parseFloat(newSizeInput.value);
+  if (isNaN(oldV) || isNaN(newV) || oldV <= 0){
+    sizeStamp.className = 'stamp neutral';
+    sizeStamp.innerHTML = 'ENTER<br>SIZES';
+    statDiff.textContent = '—'; statDiff.className='v';
+    statPct.textContent = '—'; statPct.className='v';
+    statVerdict.textContent = '—'; statVerdict.className='v';
+    return null;
+  }
+  const diff = newV - oldV;
+  const pct = (diff / oldV) * 100;
+  let verdict, cls, stampText;
+  if (diff <= 0){
+    verdict = 'Decreased — good'; cls='green'; stampText='SIZE<br>DOWN';
+  } else if (pct <= 15){
+    verdict = 'Normal range'; cls='green'; stampText='NORMAL<br>RANGE';
+  } else if (pct <= 40){
+    verdict = 'Review recommended'; cls='amber'; stampText='REVIEW<br>SUGGESTED';
+  } else {
+    verdict = 'Flag for review'; cls='rust'; stampText='FLAG<br>FOR REVIEW';
+  }
+  sizeStamp.className = 'stamp ' + cls;
+  sizeStamp.innerHTML = stampText;
+  statDiff.textContent = (diff>=0?'+':'') + diff.toFixed(2) + ' MB';
+  statDiff.className = 'v ' + cls;
+  statPct.textContent = (pct>=0?'+':'') + pct.toFixed(1) + '%';
+  statPct.className = 'v ' + cls;
+  statVerdict.textContent = verdict;
+  statVerdict.className = 'v ' + cls;
+  return {oldV, newV, diff, pct, verdict};
+}
+oldSizeInput.addEventListener('input', computeSize);
+newSizeInput.addEventListener('input', computeSize);
+
+function bytesToMB(bytes){ return bytes / (1024*1024); }
+
+const fileInfo = { old: null, new: null };
+
+function handleApkFile(file, sizeInputEl, dropzoneEl, textEl, key){
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'apk' && ext !== 'aab'){
+    textEl.textContent = 'Please choose a .apk or .aab file';
+    dropzoneEl.classList.remove('filled');
+    return;
+  }
+  const mb = bytesToMB(file.size);
+  sizeInputEl.value = mb.toFixed(2);
+  textEl.textContent = file.name + ' — ' + mb.toFixed(2) + ' MB';
+  dropzoneEl.classList.add('filled');
+  fileInfo[key] = { name: file.name, type: ext.toUpperCase(), sizeMB: mb };
+  computeSize();
+}
+
+function wireDropzone(dropzoneId, fileInputId, textId, sizeInputEl, key){
+  const dz = document.getElementById(dropzoneId);
+  const input = document.getElementById(fileInputId);
+  const text = document.getElementById(textId);
+
+  input.addEventListener('change', (e)=>{
+    if (e.target.files && e.target.files[0]) handleApkFile(e.target.files[0], sizeInputEl, dz, text, key);
+  });
+
+  ['dragenter','dragover'].forEach(evt=>{
+    dz.addEventListener(evt, (e)=>{ e.preventDefault(); dz.classList.add('dragover'); });
+  });
+  ['dragleave','drop'].forEach(evt=>{
+    dz.addEventListener(evt, (e)=>{ e.preventDefault(); dz.classList.remove('dragover'); });
+  });
+  dz.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file){
+      input.files = e.dataTransfer.files;
+      handleApkFile(file, sizeInputEl, dz, text, key);
+    }
+  });
+}
+
+wireDropzone('oldDropzone', 'oldApkFile', 'oldDropzoneText', oldSizeInput, 'old');
+wireDropzone('newDropzone', 'newApkFile', 'newDropzoneText', newSizeInput, 'new');
+
+function generateSizeReport(){
+  const r = computeSize();
+  const notes = document.getElementById('sizeChangeNote').value.trim();
+  const out = document.getElementById('sizeOutput');
+  if (!r){
+    out.value = 'Enter both old and new APK sizes above to generate a report.';
+    return;
+  }
+  const lines = [];
+  lines.push('APP SIZE CHECK REPORT');
+  lines.push('======================');
+  lines.push('');
+  lines.push('Old build     : ' + (fileInfo.old ? fileInfo.old.name + ' (' + fileInfo.old.type + ')' : '(manual entry)'));
+  lines.push('New build     : ' + (fileInfo.new ? fileInfo.new.name + ' (' + fileInfo.new.type + ')' : '(manual entry)'));
+  lines.push('Old size       : ' + r.oldV.toFixed(2) + ' MB');
+  lines.push('New size       : ' + r.newV.toFixed(2) + ' MB');
+  lines.push('Difference     : ' + (r.diff>=0?'+':'') + r.diff.toFixed(2) + ' MB');
+  lines.push('% change       : ' + (r.pct>=0?'+':'') + r.pct.toFixed(1) + '%');
+  lines.push('Assessment     : ' + r.verdict);
+  lines.push('');
+  lines.push('What changed this release:');
+  lines.push(notes ? notes : '(not provided)');
+  lines.push('');
+  lines.push('Note: thresholds are a general guide (≤15% normal, 15–40% review, >40% flag) — always weigh against the actual feature/asset changes listed above. If either build is an AAB, its raw size is a proxy — the real download size depends on the device-specific split APK Play Store generates from it.');
+  out.value = lines.join('\n');
+}
+
+/* ---------------- Checklist tab ---------------- */
+const questions = [
+  {id:1, text:'Have you checked the app on Firebase?', noteType:'onYes', noteLabel:'Note', hint:'If Yes, reference the Firebase Report Link above'},
+  {id:2, text:'Have you verified the updated Application Version?', noteType:'onNo'},
+  {id:3, text:'Have you verified Display AppName (this name will show inside App in Home screen)?', noteType:'onNo'},
+  {id:4, text:'Have you checked all permission?', noteType:'onNo'},
+  {id:5, text:'Have you verified APP UI Testing as per Design?', noteType:'onNo'},
+  {id:6, text:'Have you checked App notification?', noteType:'onNo'},
+  {id:7, text:'Have you verified OneSignal Id (Notification for new app)?', noteType:'always', noteLabel:'Note', defaultNote:'Not added onesignal'},
+  {id:8, text:'Have you verified AdMob Ids (Banner, Interstitial, Rewarded, Native)?', noteType:'onNo'},
+  {id:9, text:'Have you performed all manual scenario?', noteType:'onNo'},
+  {id:10, text:'Have you performed all click events with redirection?', noteType:'onNo'},
+  {id:11, text:'Have you checked Is the Consume Payment method disable?', noteType:'onNo'},
+  {id:12, text:'Have you performed Live Payment with all plans?', noteType:'onNo'},
+  {id:13, text:'Have you checked the updated list which provides by the developer in the release ticket?', noteType:'onNo'},
+  {id:14, text:'Have you checked the old app version to the new app version?', noteType:'onNo'},
+  {id:15, text:'Did you verify the common app issue from above mention sheet and resolve it in your app?', noteType:'always', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
+  {id:16, text:'Did you ask the developer, Is old version open issues resolved in this update?', noteType:'always', noteLabel:'Issue No.', hint:'Mention issue number if Yes'},
+  {id:17, text:'Have you checked all modules as per TestLink?', noteType:'onYes', noteLabel:'Note', hint:'If Yes, reference the TestLink Report Link above'},
+  {id:18, text:'Have you checked User Acceptance Testing?', noteType:'onNo'},
+  {id:19, text:'Have you tested the application in all devices?', noteType:'always', noteLabel:'Device Name', hint:'List all device names tested'},
+  {id:20, text:'Have you tested the application in all OS?', noteType:'always', noteLabel:'OS Name', hint:'List all OS versions tested'}
+];
+
+const state = {}; // {id: {answer: 'Yes'|'No'|null, note: ''}}
+questions.forEach(q=>{ state[q.id] = {answer:null, note: q.defaultNote || ''}; });
+
+const listEl = document.getElementById('questionList');
+
+questions.forEach(q=>{
+  const row = document.createElement('div');
+  row.className = 'q-row';
+  row.innerHTML = `
+    <div class="q-top">
+      <div class="q-text"><span class="q-num">${q.id}.</span>${q.text}</div>
+      <div class="yn-toggle">
+        <button type="button" class="yn-btn yes" data-id="${q.id}" data-val="Yes">Yes</button>
+        <button type="button" class="yn-btn no" data-id="${q.id}" data-val="No">No</button>
+      </div>
+    </div>
+    <div class="q-note" id="note-wrap-${q.id}">
+      <label>${q.noteLabel || 'Note'}</label>
+      <input type="text" id="note-${q.id}" placeholder="${q.hint || 'Add a note...'}" value="${q.defaultNote || ''}">
+      ${q.hint ? `<div class="hint">${q.hint}</div>` : ''}
+    </div>
+  `;
+  listEl.appendChild(row);
+});
+
+listEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.yn-btn');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const val = btn.dataset.val;
+  state[id].answer = val;
+  document.querySelectorAll(`.yn-btn[data-id="${id}"]`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateNoteVisibility(id);
+  updateProgress();
+});
+
+listEl.addEventListener('input', (e)=>{
+  if (e.target.tagName === 'INPUT'){
+    const id = e.target.id.replace('note-','');
+    if (state[id]) state[id].note = e.target.value;
+
+    // Auto-sync: if the Firebase check note (Q1) or TestLink check note (Q17)
+    // contains a link, mirror it into the matching header link field.
+    if (id === '1' && state[id].answer === 'Yes'){
+      const val = e.target.value.trim();
+      if (val) document.getElementById('firebaseLink').value = val;
+    }
+    if (id === '17' && state[id].answer === 'Yes'){
+      const val = e.target.value.trim();
+      if (val) document.getElementById('testlinkLink').value = val;
+    }
+  }
+});
+
+function updateNoteVisibility(id){
+  const q = questions.find(x=>x.id == id);
+  const wrap = document.getElementById('note-wrap-'+id);
+  const ans = state[id].answer;
+  let show = false;
+  if (q.noteType === 'always') show = true;
+  else if (q.noteType === 'onYes' && ans === 'Yes') show = true;
+  else if (q.noteType === 'onNo' && ans === 'No') show = true;
+  wrap.classList.toggle('visible', show);
+}
+
+function updateProgress(){
+  const answered = questions.filter(q=>state[q.id].answer).length;
+  const pct = (answered/questions.length)*100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = answered + ' of ' + questions.length + ' answered';
+  const stamp = document.getElementById('checklistStamp');
+  stamp.textContent = answered + '/20';
+  if (answered === questions.length){
+    stamp.className = 'stamp green';
+  } else if (answered > 0){
+    stamp.className = 'stamp amber';
+  } else {
+    stamp.className = 'stamp neutral';
+  }
+}
+
+// Exact question line text as it appears in the original reference document,
+// starting right after "N. " and running through to the end of the line.
+// Kept verbatim (including original spacing quirks) so ideal/updated output matches it exactly.
+const idealLineText = {
+  1: 'Have you checked the app on Firebase? => (Yes/No) (Note: if Yes then mention the Firebase Report Link above)',
+  2: 'Have you verified the updated Application Version? => (Yes/No)',
+  3: 'Have you verified Display AppName (this name will show inside App in Home screen)? =>(Yes/No)',
+  4: 'Have you checked all permission? => (Yes/No)',
+  5: 'Have you verified APP UI Testing as per Design? => (Yes/No)',
+  6: 'Have you checked App notification? => (Yes/No)',
+  7: 'Have you verified OneSignal Id(Notification for new app) ? => (Yes/No) (Note : Not added onesignal)',
+  8: 'Have you verified AdMob Ids(Banner, Interstitial, Rewarded, Native) ? => (Yes/No)',
+  9: 'Have you performed all manual scenario? => (Yes/No)',
+  10: 'Have you performed all click events with redirection? => (Yes/No)',
+  11: 'Have you checked Is the Consume Payment method disable? => (Yes/No)',
+  12: 'Have you performed Live Payment with all plans? => (Yes/No)',
+  13: 'Have you checked the updated list which provides by the developer in the release ticket? => (Yes/No)',
+  14: 'Have you checked the old app version to the new app version? => (Yes/No)',
+  15: 'Did you verify the common app issue from above mention sheet and resolve it in your app? (If Yes then mention the issue No.) => (Yes/No) (issue no : )',
+  16: 'Did you ask the developer, Is old version open issues resolved in this update? (Note : If yes then mention issue No.) => (Yes/No) (issue no : )',
+  17: 'Have you checked all modules as per TestLink? => (Yes/No) (Note: if Yes then mention the testlink report link above)',
+  18: 'Have you checked User Acceptance Testing? => (Yes/No)',
+  19: 'Have you tested the application in all devices? => (Yes/No) (Note: if Yes then mention the all device name) (Device Name : )',
+  20: 'Have you tested the application in all OS? => (Yes/No) (Note: if Yes then mention the all OS)(OS Name : )'
+};
+
+// For the 3 items where the note itself IS the only fillable spot (no separate blank field).
+const inlineNoteLabel = { 1: 'Note', 7: 'Note ', 17: 'Note' };
+
+function buildUpdatedLine(id, answer, noteValue){
+  const full = idealLineText[id];
+  const idx = full.indexOf('(Yes/No)');
+  const before = full.slice(0, idx);
+  let after = full.slice(idx + '(Yes/No)'.length);
+  const ansText = answer || '(Yes/No)';
+
+  if (inlineNoteLabel[id] !== undefined){
+    if (noteValue){
+      after = ` (${inlineNoteLabel[id]}: ${noteValue})`;
+    } // else leave the original instructional note text as-is
+  } else if (/:\s*\)\s*$/.test(after)){
+    // fills the trailing blank field, e.g. "(issue no : )" / "(Device Name : )" / "(OS Name : )"
+    if (noteValue){
+      after = after.replace(/:\s*\)\s*$/, ': ' + noteValue + ')');
+    }
+  }
+  return id + '. ' + before + ansText + after;
+}
+
+function generateChecklistReport(mode){
+  const out = document.getElementById('checklistOutput');
+  const ticket = document.getElementById('ticketLink').value.trim();
+  const appsLink = document.getElementById('appsDetailsLink').value.trim();
+  const testlink = document.getElementById('testlinkLink').value.trim();
+  const firebase = document.getElementById('firebaseLink').value.trim();
+
+  const lines = [];
+  lines.push('h2. CheckList');
+  lines.push('> Give Answer in Yes/No. if you select No then add Note(description) about the answer.');
+  lines.push('');
+  lines.push('> Release Ticket Link : ' + (mode==='ideal' ? '' : ticket));
+  lines.push('');
+  lines.push('> Apps Details: ' + appsLink);
+  lines.push('');
+  lines.push('> TestLink Report Link : ' + (mode==='ideal' ? '' : testlink));
+  lines.push('');
+  lines.push('> Firebase Report Link : ' + (mode==='ideal' ? '' : firebase));
+  lines.push('');
+
+  questions.forEach(q=>{
+    if (mode === 'ideal'){
+      lines.push(q.id + '. ' + idealLineText[q.id]);
+    } else {
+      const answer = state[q.id].answer;
+      const noteValue = state[q.id].note ? state[q.id].note.trim() : '';
+      lines.push(buildUpdatedLine(q.id, answer, noteValue));
+    }
+    lines.push('');
+  });
+
+  out.value = lines.join('\n').trim() + '\n';
+}
+
+/* ---------------- Copy helper ---------------- */
+function copyBox(textareaId, feedbackId){
+  const el = document.getElementById(textareaId);
+  if (!el.value){ return; }
+  el.select();
+  el.setSelectionRange(0, 999999);
+  navigator.clipboard.writeText(el.value).then(()=>{
+    const fb = document.getElementById(feedbackId);
+    fb.classList.add('show');
+    setTimeout(()=>fb.classList.remove('show'), 1400);
+  }).catch(()=>{
+    document.execCommand('copy');
+  });
+}
+
+/* init */
+computeSize();
+updateProgress();
+</script>
+</body>
+</html>
