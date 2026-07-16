@@ -160,7 +160,7 @@
 
   .stat-block{ font-family:'IBM Plex Mono', monospace; }
   .stat-line{ display:flex; gap:10px; font-size:14px; margin-bottom:4px; }
-  .stat-line .k{ color:var(--muted); min-width:150px; }
+  .stat-line .k{ color:var(--muted); min-width:180px; }
   .stat-line .v{ font-weight:600; }
   .stat-line .v.green{ color:var(--green); }
   .stat-line .v.amber{ color:var(--amber); }
@@ -278,12 +278,87 @@
     background-color: var(--rust-bg) !important;
   }
 
+  /* Username gate modal */
+  .user-gate-overlay{
+    position:fixed; inset:0; background:rgba(30,42,34,0.55); z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .user-gate-card{
+    background:var(--surface); border-radius:14px; border:1px solid var(--line);
+    padding:32px; max-width:380px; width:100%; box-shadow:0 12px 40px rgba(0,0,0,0.18);
+  }
+  .user-gate-card h2{ font-family:'Space Grotesk', sans-serif; font-size:20px; margin:0 0 8px; }
+  .user-gate-card p{ color:var(--muted); font-size:13.5px; margin:0 0 18px; line-height:1.5; }
+  .user-gate-card input{
+    width:100%; font-size:15px; padding:11px 13px; border:1px solid var(--line); border-radius:8px;
+    font-family:'Inter', sans-serif; margin-bottom:12px;
+  }
+  .user-gate-card input:focus{ outline:2px solid var(--green); outline-offset:1px; }
+  .user-badge{
+    display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px; color:var(--muted); background:#fff; border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px 6px 14px; white-space:nowrap;
+  }
+  .user-badge button{
+    background:none; border:none; color:var(--green); font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:12px; cursor:pointer; padding:2px 6px;
+  }
+  .cloud-status{ font-size:11px; color:var(--muted); margin-top:6px; font-style:italic; }
+  .cloud-status.on{ color:var(--green); }
+  .cloud-status.off{ color:var(--amber); }
+
+  /* Reference app box */
+  .ref-app-box{
+    border:1px solid var(--line-soft); border-radius:10px; padding:14px 16px; margin-bottom:18px;
+    background:#F9FAF7;
+  }
+  .ref-app-box-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; margin-bottom:8px; }
+  .ref-app-current{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; background:#fff; border:1px solid var(--line);
+    border-radius:8px; padding:9px 12px; margin-bottom:10px;
+  }
+  .ref-app-current.empty{ color:var(--muted); font-style:italic; font-family:'Inter', sans-serif; }
+  .ref-app-current button{
+    background:none; border:1px solid var(--line); border-radius:6px; padding:4px 9px;
+    font-family:'Space Grotesk', sans-serif; font-size:11.5px; font-weight:600; color:var(--rust); cursor:pointer;
+  }
+
+  /* History panels */
+  .history-section{ margin-top:28px; }
+  .history-section-title{
+    font-family:'Space Grotesk', sans-serif; font-size:16px; font-weight:600; margin:0 0 4px;
+  }
+  .history-empty{ color:var(--muted); font-size:13px; font-style:italic; padding:10px 0; }
+  .history-month-group{ margin-bottom:16px; }
+  .history-month-label{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--line-soft);
+  }
+  .history-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    border:1px solid var(--line-soft); border-radius:9px; padding:10px 14px; margin-bottom:8px; background:#fff;
+  }
+  .history-row-info{ font-size:13px; line-height:1.5; }
+  .history-row-info .hr-version{ font-family:'Space Grotesk', sans-serif; font-weight:600; }
+  .history-row-info .hr-meta{ color:var(--muted); font-family:'IBM Plex Mono', monospace; font-size:12px; }
+  .history-row-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .history-row-actions button{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11.5px;
+    padding:6px 11px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer;
+  }
+  .history-row-actions button.edit{ color:var(--amber); }
+  .history-row-actions button.copy{ color:var(--green); }
+  .history-row-actions button.delete{ color:var(--rust); }
+  .history-row-actions button:hover{ background:#F2F4EF; }
+
   @media (max-width: 640px){
     .field-row{ grid-template-columns: 1fr; }
     .q-top{ flex-direction:column; }
     .stamp{ width:100px; height:100px; font-size:11.5px; }
     .panel-corner-btn { position: static; margin-bottom: 12px; display: inline-block; }
     .device-groups { grid-template-columns: 1fr; }
+    .history-row{ flex-direction:column; align-items:flex-start; }
   }
 </style>
 </head>
@@ -295,6 +370,17 @@
       <span class="eyebrow">Pre-release inspection</span>
       <h1>Release QA Dashboard</h1>
       <p>Check app size deltas, walk the release checklist, or map predictive crash vectors before sign-off.</p>
+    </div>
+    <div id="userBadgeWrap"></div>
+  </div>
+
+  <div class="user-gate-overlay" id="userGateOverlay" style="display:none;">
+    <div class="user-gate-card">
+      <h2>What's your name?</h2>
+      <p>Your name identifies your records. Use the same name on any device/browser to find your saved history again — anyone who enters the same name will see the same records, so pick something only you'd use.</p>
+      <input type="text" id="userGateInput" placeholder="e.g. Bhavin" maxlength="60" autocomplete="off">
+      <button class="primary" style="width:100%;" onclick="submitUsername()">Continue</button>
+      <div class="cloud-status" id="cloudStatusLine"></div>
     </div>
   </div>
 
@@ -314,7 +400,7 @@
     <!-- ===================== TAB 1: APP SIZE ===================== -->
     <div class="tab-panel active" id="tab-size">
       <h2 class="section-title">App size comparison</h2>
-      <p class="section-sub">Upload the old and new build file — APK, AAB (Android), or IPA (iOS) — size is read straight from the file. Or type sizes in manually.</p>
+      <p class="section-sub">Upload the reference app, old and new build files — APK, AAB (Android), or IPA (iOS) — or input sizes manually. Analytics evaluate the Old App against the Reference profile.</p>
 
       <div class="version-track-row">
         <div class="field" style="max-width:260px;">
@@ -322,6 +408,15 @@
           <input type="text" id="appVersionInput" placeholder="e.g. 4.2.0">
         </div>
         <button class="ghost small-ghost" onclick="clearHistory()">Clear version history</button>
+      </div>
+
+      <div class="ref-app-box">
+        <div class="ref-app-box-title">Reference (baseline) app — stays saved until you replace it</div>
+        <div class="ref-app-current empty" id="refAppCurrentLine">No reference app set yet</div>
+        <div class="dropzone" id="refDropzone">
+          <input type="file" id="refApkFile" accept=".apk,.aab,.ipa">
+          <div class="dropzone-text" id="refDropzoneText">Choose or drop a reference APK/AAB/IPA</div>
+        </div>
       </div>
 
       <div class="field-row">
@@ -366,14 +461,14 @@
       <div class="stamp-row">
         <div class="stamp neutral" id="sizeStamp">ENTER<br>SIZES</div>
         <div class="stat-block">
-          <div class="stat-line"><span class="k">Difference</span><span class="v" id="statDiff">—</span></div>
-          <div class="stat-line"><span class="k">% change</span><span class="v" id="statPct">—</span></div>
+          <div class="stat-line"><span class="k">Difference (Old vs Ref)</span><span class="v" id="statDiff">—</span></div>
+          <div class="stat-line"><span class="k">% change (Old vs Ref)</span><span class="v" id="statPct">—</span></div>
           <div class="stat-line"><span class="k">Assessment</span><span class="v" id="statVerdict">—</span></div>
         </div>
       </div>
 
       <div class="hint-box">
-        General guide only — always weigh against what actually changed: <strong>≤15%</strong> increase is typically normal for routine updates · <strong>15–40%</strong> warrants a quick look at what was added · <strong>&gt;40%</strong> is worth confirming with the developer before sign-off.<br><br>
+        General guide only — always weigh against what actually changed: <strong>&le;15%</strong> increase is typically normal for routine updates &middot; <strong>15–40%</strong> warrants a quick look at what was added &middot; <strong>&gt;40%</strong> is worth confirming with the developer before sign-off.<br><br>
         Note on AAB/IPA: an .aab's raw size is a proxy, not the exact size users download — Play Store generates optimized, device-specific split APKs from it. Likewise, an .ipa's raw size can differ from the App Store's on-device download size once Apple applies thinning/slicing for each device. For the most accurate download-size comparison, cross-check against Play Console / App Store Connect's estimated download size for both builds.
       </div>
 
@@ -385,6 +480,12 @@
 
       <div class="output-box">
         <textarea id="sizeOutput" readonly placeholder="Your generated report will appear here..."></textarea>
+      </div>
+
+      <div class="history-section">
+        <h3 class="history-section-title">Your size check history</h3>
+        <p class="section-sub">Grouped by month, newest first. Edit reloads it into the form above; Copy grabs that record's report text.</p>
+        <div id="sizeHistoryContainer"></div>
       </div>
     </div>
 
@@ -435,6 +536,12 @@
 
       <div class="output-box">
         <textarea id="checklistOutput" readonly placeholder="Your generated checklist report will appear here..."></textarea>
+      </div>
+
+      <div class="history-section">
+        <h3 class="history-section-title">Your checklist history</h3>
+        <p class="section-sub">Grouped by month, newest first. Edit reloads it into the form above; Copy grabs that record's report text.</p>
+        <div id="checklistHistoryContainer"></div>
       </div>
     </div>
 
@@ -514,6 +621,105 @@
 </div>
 
 <script>
+/* =========================================================================
+   CLOUD STORAGE (kvdb.io) — lets records "follow" a username across devices.
+   ========================================================================= */
+const KVDB_BUCKET_ID = 'REPLACE_WITH_YOUR_BUCKET_ID';
+const CLOUD_ENABLED = KVDB_BUCKET_ID && KVDB_BUCKET_ID.indexOf('REPLACE_WITH') === -1;
+
+async function cloudGet(key){
+  if (!CLOUD_ENABLED) return null;
+  try{
+    const res = await fetch(`https://kvdb.io/${KVDB_BUCKET_ID}/${encodeURIComponent(key)}`);
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    return await res.text();
+  } catch(e){ return null; }
+}
+async function cloudSet(key, value){
+  if (!CLOUD_ENABLED) return false;
+  try{
+    const res = await fetch(`https://kvdb.io/${KVDB_BUCKET_ID}/${encodeURIComponent(key)}`, { method:'PUT', body:value });
+    return res.ok;
+  } catch(e){ return false; }
+}
+async function cloudDelete(key){
+  if (!CLOUD_ENABLED) return false;
+  try{
+    const res = await fetch(`https://kvdb.io/${KVDB_BUCKET_ID}/${encodeURIComponent(key)}`, { method:'DELETE' });
+    return res.ok;
+  } catch(e){ return false; }
+}
+
+async function loadRecord(key, fallbackValue){
+  const cloudVal = await cloudGet(key);
+  if (cloudVal !== null){
+    try{ localStorage.setItem(key, cloudVal); return JSON.parse(cloudVal); } catch(e){}
+  }
+  const local = localStorage.getItem(key);
+  if (local){ try{ return JSON.parse(local); } catch(e){} }
+  return fallbackValue;
+}
+async function saveRecord(key, value){
+  const str = JSON.stringify(value);
+  localStorage.setItem(key, str);
+  await cloudSet(key, str);
+}
+async function deleteRecord(key){
+  localStorage.removeItem(key);
+  await cloudDelete(key);
+}
+
+/* ---------------- Username gate ---------------- */
+const USERNAME_KEY = 'qa_dashboard_username';
+let currentUsername = localStorage.getItem(USERNAME_KEY) || '';
+
+function userKey(base){ return base + '::' + currentUsername.toLowerCase(); }
+
+function renderUserBadge(){
+  document.getElementById('userBadgeWrap').innerHTML = `
+    <div class="user-badge">
+      👤 ${escapeHtml(currentUsername)}
+      <button onclick="switchUser()">Switch</button>
+    </div>`;
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function submitUsername(){
+  const input = document.getElementById('userGateInput');
+  const name = input.value.trim();
+  if (!name){ input.focus(); return; }
+  currentUsername = name;
+  localStorage.setItem(USERNAME_KEY, name);
+  document.getElementById('userGateOverlay').style.display = 'none';
+  renderUserBadge();
+  initApp();
+}
+
+function switchUser(){
+  if (!confirm('Switch user? This will reload the page and ask for a name again.')) return;
+  localStorage.removeItem(USERNAME_KEY);
+  location.reload();
+}
+
+function showUsernameGate(){
+  const overlay = document.getElementById('userGateOverlay');
+  overlay.style.display = 'flex';
+  const statusLine = document.getElementById('cloudStatusLine');
+  statusLine.textContent = CLOUD_ENABLED
+    ? 'Cloud sync is on — your records will follow this name to any device.'
+    : 'Cloud sync isn\'t set up yet — records will stay on this browser only. (See KVDB_BUCKET_ID setup comment in the code.)';
+  statusLine.className = 'cloud-status ' + (CLOUD_ENABLED ? 'on' : 'off');
+  document.getElementById('userGateInput').addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter') submitUsername();
+  });
+  document.getElementById('userGateInput').focus();
+}
+
 /* ---------------- Tabs ---------------- */
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -572,7 +778,7 @@ function buildSizeHistorySection(hist, currentVersion){
   if (withSize.length === 0) return '';
   const lines = [];
   lines.push('');
-  lines.push('VERSION HISTORY — APP SIZE (last ' + withSize.length + ' of 5 tracked)');
+  lines.push('VERSION HISTORY — TRACKED ENTRIES');
   lines.push('------------------------------------------------');
   let prev = null;
   withSize.forEach(h=>{
@@ -580,7 +786,7 @@ function buildSizeHistorySection(hist, currentVersion){
     if (prev !== null){
       const d = h.sizeMB - prev;
       const p = prev > 0 ? (d/prev*100) : 0;
-      deltaTxt = '  (' + (d>=0?'+':'') + d.toFixed(2) + ' MB, ' + (p>=0?'+':'') + p.toFixed(1) + '% vs previous)';
+      deltaTxt = '  (' + (d>=0?'+':'') + d.toFixed(2) + ' MB, ' + (p>=0?'+':'') + p.toFixed(1) + '% vs absolute tracked history item)';
     }
     const marker = h.version === currentVersion ? ' <-- current' : '';
     lines.push(h.version + ': ' + h.sizeMB.toFixed(2) + ' MB' + deltaTxt + marker);
@@ -597,10 +803,14 @@ const statDiff = document.getElementById('statDiff');
 const statPct = document.getElementById('statPct');
 const statVerdict = document.getElementById('statVerdict');
 
+const fileInfo = { old: null, new: null, ref: null };
+
 function computeSize(){
   const oldV = parseFloat(oldSizeInput.value);
   const newV = parseFloat(newSizeInput.value);
-  if (isNaN(oldV) || isNaN(newV) || oldV <= 0){
+  const refV = fileInfo.ref ? fileInfo.ref.sizeMB : 0;
+
+  if (isNaN(oldV) || !refV || refV <= 0){
     sizeStamp.className = 'stamp neutral';
     sizeStamp.innerHTML = 'ENTER<br>SIZES';
     statDiff.textContent = '—'; statDiff.className='v';
@@ -608,8 +818,10 @@ function computeSize(){
     statVerdict.textContent = '—'; statVerdict.className='v';
     return null;
   }
-  const diff = newV - oldV;
-  const pct = (diff / oldV) * 100;
+  
+  // Mathematical calculation targets Old Build vs the persistent Reference App baseline profile
+  const diff = oldV - refV;
+  const pct = (diff / refV) * 100;
   let verdict, cls, stampText;
   if (diff <= 0){
     verdict = 'Decreased — good'; cls='green'; stampText='SIZE<br>DOWN';
@@ -628,14 +840,12 @@ function computeSize(){
   statPct.className = 'v ' + cls;
   statVerdict.textContent = verdict;
   statVerdict.className = 'v ' + cls;
-  return {oldV, newV, diff, pct, verdict};
+  return {refV, oldV, newV, diff, pct, verdict};
 }
 oldSizeInput.addEventListener('input', computeSize);
 newSizeInput.addEventListener('input', computeSize);
 
 function bytesToMB(bytes){ return bytes / (1024*1024); }
-
-const fileInfo = { old: null, new: null };
 
 function handleApkFile(file, sizeInputEl, dropzoneEl, textEl, key){
   if (!file) return;
@@ -681,36 +891,250 @@ function wireDropzone(dropzoneId, fileInputId, textId, sizeInputEl, key){
 wireDropzone('oldDropzone', 'oldApkFile', 'oldDropzoneText', oldSizeInput, 'old');
 wireDropzone('newDropzone', 'newApkFile', 'newDropzoneText', newSizeInput, 'new');
 
+/* ---------------- Reference (baseline) app ---------------- */
+function renderRefAppLine(ref){
+  const line = document.getElementById('refAppCurrentLine');
+  if (!ref){
+    line.textContent = 'No reference app set yet';
+    line.className = 'ref-app-current empty';
+    return;
+  }
+  line.className = 'ref-app-current';
+  line.innerHTML = `<span>${escapeHtml(ref.name)} (${ref.type}) — ${ref.sizeMB.toFixed(2)} MB, set ${new Date(ref.date).toLocaleDateString()}</span>
+    <button onclick="clearRefApp()">Clear reference</button>`;
+}
+
+async function loadRefApp(){
+  const ref = await loadRecord(userKey('refapp'), null);
+  renderRefAppLine(ref);
+  if (ref){
+    fileInfo.ref = { name: ref.name, type: ref.type, sizeMB: ref.sizeMB };
+    if (!oldSizeInput.value){
+      oldSizeInput.value = ref.sizeMB.toFixed(2);
+      fileInfo.old = { name: ref.name, type: ref.type, sizeMB: ref.sizeMB };
+    }
+    computeSize();
+  }
+}
+
+async function clearRefApp(){
+  if (!confirm('Clear the saved reference app?')) return;
+  await deleteRecord(userKey('refapp'));
+  fileInfo.ref = null;
+  renderRefAppLine(null);
+  computeSize();
+}
+
+const refDropzone = document.getElementById('refDropzone');
+const refApkFile = document.getElementById('refApkFile');
+const refDropzoneText = document.getElementById('refDropzoneText');
+
+async function handleRefAppFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'apk' && ext !== 'aab' && ext !== 'ipa'){
+    refDropzoneText.textContent = 'Please choose a .apk, .aab, or .ipa file';
+    return;
+  }
+  const mb = bytesToMB(file.size);
+  const ref = { name: file.name, type: ext.toUpperCase(), sizeMB: mb, date: new Date().toISOString() };
+  await saveRecord(userKey('refapp'), ref);
+  refDropzone.classList.add('filled');
+  refDropzoneText.textContent = file.name + ' — ' + mb.toFixed(2) + ' MB (saved as reference)';
+  renderRefAppLine(ref);
+  fileInfo.ref = { name: file.name, type: ext.toUpperCase(), sizeMB: mb };
+  oldSizeInput.value = mb.toFixed(2);
+  fileInfo.old = { name: file.name, type: ext.toUpperCase(), sizeMB: mb };
+  computeSize();
+}
+
+refApkFile.addEventListener('change', (e)=>{
+  if (e.target.files && e.target.files[0]) handleRefAppFile(e.target.files[0]);
+});
+['dragenter','dragover'].forEach(evt=>{
+  refDropzone.addEventListener(evt, (e)=>{ e.preventDefault(); refDropzone.classList.add('dragover'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  refDropzone.addEventListener(evt, (e)=>{ e.preventDefault(); refDropzone.classList.remove('dragover'); });
+});
+refDropzone.addEventListener('drop', (e)=>{
+  e.preventDefault();
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file){ refApkFile.files = e.dataTransfer.files; handleRefAppFile(file); }
+});
+
 function generateSizeReport(){
   const r = computeSize();
   const notes = document.getElementById('sizeChangeNote').value.trim();
   const out = document.getElementById('sizeOutput');
   if (!r){
-    out.value = 'Enter both old and new APK sizes above to generate a report.';
+    out.value = 'Please provide a reference app configuration baseline alongside target old build matrix sizes.';
     return;
   }
   const lines = [];
   lines.push('APP SIZE CHECK REPORT');
   lines.push('======================');
   lines.push('');
-  lines.push('Old build     : ' + (fileInfo.old ? fileInfo.old.name + ' (' + fileInfo.old.type + ')' : '(manual entry)'));
-  lines.push('New build     : ' + (fileInfo.new ? fileInfo.new.name + ' (' + fileInfo.new.type + ')' : '(manual entry)'));
-  lines.push('Old size       : ' + r.oldV.toFixed(2) + ' MB');
-  lines.push('New size       : ' + r.newV.toFixed(2) + ' MB');
-  lines.push('Difference     : ' + (r.diff>=0?'+':'') + r.diff.toFixed(2) + ' MB');
-  lines.push('% change       : ' + (r.pct>=0?'+':'') + r.pct.toFixed(1) + '%');
-  lines.push('Assessment     : ' + r.verdict);
+  lines.push('BUILD SIZE SUMMARY:');
+  lines.push('-------------------');
+  lines.push('Reference App : ' + (fileInfo.ref ? fileInfo.ref.name : 'Saved Baseline') + ' (' + r.refV.toFixed(2) + ' MB)');
+  lines.push('Old Build     : ' + (fileInfo.old ? fileInfo.old.name + ' (' + fileInfo.old.type + ')' : '(manual entry)') + ' (' + r.oldV.toFixed(2) + ' MB)');
+  lines.push('New Build     : ' + (fileInfo.new ? fileInfo.new.name + ' (' + fileInfo.new.type + ')' : '(manual entry)') + ' (' + (isNaN(r.newV) ? '—' : r.newV.toFixed(2)) + ' MB)');
+  lines.push('-------------------');
+  lines.push('');
+  lines.push('Difference (Old vs Reference): ' + (r.diff>=0?'+':'') + r.diff.toFixed(2) + ' MB');
+  lines.push('% change                     : ' + (r.pct>=0?'+':'') + r.pct.toFixed(1) + '%');
+  lines.push('Assessment                   : ' + r.verdict);
+  
+  if (!isNaN(r.newV) && r.newV > 0) {
+    const newDiff = r.newV - r.oldV;
+    const newPct = r.oldV > 0 ? (newDiff / r.oldV) * 100 : 0;
+    lines.push('Difference (New vs Old)      : ' + (newDiff>=0?'+':'') + newDiff.toFixed(2) + ' MB (' + (newPct>=0?'+':'') + newPct.toFixed(1) + '%)');
+  }
+  
   lines.push('');
   lines.push('What changed this release:');
   lines.push(notes ? notes : '(not provided)');
   lines.push('');
-  lines.push('Note: thresholds are a general guide (≤15% normal, 15–40% review, >40% flag) — always weigh against the actual feature/asset changes listed above. If either build is an AAB or IPA, its raw size is a proxy — the real download size depends on the device-specific split/thinned build the Play Store or App Store generates from it.');
+  lines.push('Note: Threshold metrics assess the performance scaling vector of the Old Build explicitly compared against the static Reference app environment configuration.');
 
-  const hist = upsertHistoryEntry({ sizeMB: r.newV });
+  const hist = upsertHistoryEntry({ sizeMB: !isNaN(r.newV) ? r.newV : r.oldV });
   const historySection = buildSizeHistorySection(hist, currentVersionLabel());
   if (historySection) lines.push(historySection);
 
   out.value = lines.join('\n');
+
+  saveSizeHistoryRecord(r, notes);
+}
+
+/* ---------------- Size history (full browsable records) ---------------- */
+let editingSizeRecordId = null;
+
+function buildSizeReportText(rec){
+  const lines = [];
+  lines.push('APP SIZE CHECK REPORT');
+  lines.push('======================');
+  lines.push('');
+  lines.push('BUILD SIZE SUMMARY:');
+  lines.push('-------------------');
+  lines.push('Reference App : ' + (rec.refFileName || 'Saved Baseline') + ' (' + rec.refSizeMB.toFixed(2) + ' MB)');
+  lines.push('Old Build     : ' + (rec.oldFileName || '(manual entry)') + ' (' + rec.oldSizeMB.toFixed(2) + ' MB)');
+  lines.push('New Build     : ' + (rec.newFileName || '(manual entry)') + ' (' + (rec.newSizeMB ? rec.newSizeMB.toFixed(2) : '—') + ' MB)');
+  lines.push('-------------------');
+  lines.push('');
+  lines.push('Difference (Old vs Reference): ' + (rec.diffMB>=0?'+':'') + rec.diffMB.toFixed(2) + ' MB');
+  lines.push('% change                     : ' + (rec.pct>=0?'+':'') + rec.pct.toFixed(1) + '%');
+  lines.push('Assessment                   : ' + rec.verdict);
+  return lines.join('\n');
+}
+
+async function saveSizeHistoryRecord(r, notes){
+  const key = userKey('sizehist');
+  let list = await loadRecord(key, []);
+  const version = currentVersionLabel();
+  const record = {
+    id: editingSizeRecordId || (Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+    date: new Date().toISOString(),
+    version: version,
+    refSizeMB: r.refV, oldSizeMB: r.oldV, newSizeMB: isNaN(r.newV) ? 0 : r.newV, diffMB: r.diff, pct: r.pct, verdict: r.verdict,
+    refFileName: fileInfo.ref ? fileInfo.ref.name : 'Saved Baseline',
+    oldFileName: fileInfo.old ? (fileInfo.old.name + ' (' + fileInfo.old.type + ')') : '',
+    newFileName: fileInfo.new ? (fileInfo.new.name + ' (' + fileInfo.new.type + ')') : '',
+    notes: notes
+  };
+  if (editingSizeRecordId){
+    const idx = list.findIndex(x=>x.id === editingSizeRecordId);
+    if (idx>=0) list[idx] = record; else list.unshift(record);
+    editingSizeRecordId = null;
+  } else {
+    list.unshift(record);
+  }
+  if (list.length > 50) list = list.slice(0, 50);
+  await saveRecord(key, list);
+  renderSizeHistory(list);
+}
+
+function monthLabel(isoDate){
+  return new Date(isoDate).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+}
+function groupByMonth(records){
+  const groups = [];
+  records.forEach(rec=>{
+    const label = monthLabel(rec.date);
+    let g = groups.find(x=>x.label===label);
+    if (!g){ g = { label, items: [] }; groups.push(g); }
+    g.items.push(rec);
+  });
+  return groups;
+}
+
+function renderSizeHistory(list){
+  const container = document.getElementById('sizeHistoryContainer');
+  if (!list || list.length === 0){
+    container.innerHTML = '<div class="history-empty">No saved size checks yet — generate a report above to start your history.</div>';
+    return;
+  }
+  const groups = groupByMonth(list);
+  container.innerHTML = groups.map(g=>`
+    <div class="history-month-group">
+      <div class="history-month-label">${g.label}</div>
+      ${g.items.map(rec=>`
+        <div class="history-row">
+          <div class="history-row-info">
+            <span class="hr-version">${escapeHtml(rec.version)}</span> —
+            Ref: ${rec.refSizeMB.toFixed(2)} MB | Old: ${rec.oldSizeMB.toFixed(2)} MB
+            (${rec.pct>=0?'+':''}${rec.pct.toFixed(1)}% Old vs Ref)<br>
+            <span class="hr-meta">${new Date(rec.date).toLocaleString()}</span>
+          </div>
+          <div class="history-row-actions">
+            <button class="edit" onclick="editSizeRecord('${rec.id}')">Edit</button>
+            <button class="copy" onclick="copySizeRecord('${rec.id}')">Copy</button>
+            <button class="delete" onclick="deleteSizeRecord('${rec.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+async function getSizeHistoryList(){
+  return await loadRecord(userKey('sizehist'), []);
+}
+
+async function editSizeRecord(id){
+  const list = await getSizeHistoryList();
+  const rec = list.find(x=>x.id===id);
+  if (!rec) return;
+  editingSizeRecordId = id;
+  document.getElementById('appVersionInput').value = rec.version === '(unlabeled)' ? '' : rec.version;
+  oldSizeInput.value = rec.oldSizeMB.toFixed(2);
+  newSizeInput.value = rec.newSizeMB ? rec.newSizeMB.toFixed(2) : '';
+  document.getElementById('sizeChangeNote').value = rec.notes || '';
+  
+  if (rec.refSizeMB) {
+    fileInfo.ref = { name: rec.refFileName || 'Loaded Baseline', type: 'APK', sizeMB: rec.refSizeMB };
+    renderRefAppLine({ name: rec.refFileName || 'Loaded Baseline', type: 'APK', sizeMB: rec.refSizeMB, date: rec.date });
+  }
+  
+  computeSize();
+  window.scrollTo({ top: document.getElementById('tab-size').offsetTop - 20, behavior:'smooth' });
+}
+
+async function copySizeRecord(id){
+  const list = await getSizeHistoryList();
+  const rec = list.find(x=>x.id===id);
+  if (!rec) return;
+  try{
+    await navigator.clipboard.writeText(buildSizeReportText(rec));
+    alert('Copied that record\'s report to clipboard.');
+  } catch(e){ alert('Could not copy — clipboard access blocked.'); }
+}
+
+async function deleteSizeRecord(id){
+  if (!confirm('Delete this size check record?')) return;
+  let list = await getSizeHistoryList();
+  list = list.filter(x=>x.id!==id);
+  await saveRecord(userKey('sizehist'), list);
+  renderSizeHistory(list);
 }
 
 /* ---------------- Checklist tab ---------------- */
@@ -1128,9 +1552,155 @@ function generateChecklistReport(mode){
     const yesCount = questions.filter(q=>state[q.id].answer === 'Yes').length;
     const noCount = questions.filter(q=>state[q.id].answer === 'No').length;
     upsertHistoryEntry({ yesCount, noCount, total: questions.length });
+    saveChecklistHistoryRecord({ ticket, appsLink, testlink, firebase, yesCount, noCount });
   }
 
   out.value = lines.join('\n').trim() + '\n';
+}
+
+/* ---------------- Checklist history (full browsable records) ---------------- */
+let editingChecklistRecordId = null;
+
+function buildChecklistReportTextFromAnswers(links, answers){
+  const lines = [];
+  lines.push('h2. CheckList');
+  lines.push('> Give Answer in Yes/No. if you select No then add Note(description) about the answer.');
+  lines.push('');
+  lines.push('> Release Ticket Link : ' + (links.ticket || ''));
+  lines.push('');
+  lines.push('> Apps Details: ' + (links.appsLink || ''));
+  lines.push('');
+  lines.push('> TestLink Report Link : ' + (links.testlink || ''));
+  lines.push('');
+  lines.push('> Firebase Report Link : ' + (links.firebase || ''));
+  lines.push('');
+  questions.forEach(q=>{
+    const a = answers[q.id] || { answer:null, note:'' };
+    lines.push(buildUpdatedLine(q.id, a.answer, a.note ? a.note.trim() : ''));
+    lines.push('');
+  });
+  return lines.join('\n').trim() + '\n';
+}
+
+async function saveChecklistHistoryRecord(links){
+  const key = userKey('checklisthist');
+  let list = await loadRecord(key, []);
+  const answersSnapshot = {};
+  questions.forEach(q=>{ answersSnapshot[q.id] = { answer: state[q.id].answer, note: state[q.id].note }; });
+  const yesCount = questions.filter(q=>state[q.id].answer === 'Yes').length;
+  const noCount = questions.filter(q=>state[q.id].answer === 'No').length;
+  const record = {
+    id: editingChecklistRecordId || (Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+    date: new Date().toISOString(),
+    ticket: links.ticket, appsLink: links.appsLink, testlink: links.testlink, firebase: links.firebase,
+    answers: answersSnapshot,
+    yesCount, noCount, total: questions.length
+  };
+  if (editingChecklistRecordId){
+    const idx = list.findIndex(x=>x.id === editingChecklistRecordId);
+    if (idx>=0) list[idx] = record; else list.unshift(record);
+    editingChecklistRecordId = null;
+  } else {
+    list.unshift(record);
+  }
+  if (list.length > 50) list = list.slice(0, 50);
+  await saveRecord(key, list);
+  renderChecklistHistory(list);
+}
+
+function renderChecklistHistory(list){
+  const container = document.getElementById('checklistHistoryContainer');
+  if (!list || list.length === 0){
+    container.innerHTML = '<div class="history-empty">No saved checklists yet — generate a completed report above to start your history.</div>';
+    return;
+  }
+  const groups = groupByMonth(list);
+  container.innerHTML = groups.map(g=>`
+    <div class="history-month-group">
+      <div class="history-month-label">${g.label}</div>
+      ${g.items.map(rec=>`
+        <div class="history-row">
+          <div class="history-row-info">
+            <span class="hr-version">${escapeHtml(rec.ticket || '(no ticket link)')}</span> —
+            ${rec.yesCount}/${rec.total} Yes, ${rec.noCount} No<br>
+            <span class="hr-meta">${new Date(rec.date).toLocaleString()}</span>
+          </div>
+          <div class="history-row-actions">
+            <button class="edit" onclick="editChecklistRecord('${rec.id}')">Edit</button>
+            <button class="copy" onclick="copyChecklistRecord('${rec.id}')">Copy</button>
+            <button class="delete" onclick="deleteChecklistRecord('${rec.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+async function getChecklistHistoryList(){
+  return await loadRecord(userKey('checklisthist'), []);
+}
+
+async function editChecklistRecord(id){
+  const list = await getChecklistHistoryList();
+  const rec = list.find(x=>x.id===id);
+  if (!rec) return;
+  editingChecklistRecordId = id;
+
+  document.getElementById('ticketLink').value = rec.ticket || '';
+  document.getElementById('appsDetailsLink').value = rec.appsLink || '';
+  document.getElementById('testlinkLink').value = rec.testlink || '';
+  document.getElementById('firebaseLink').value = rec.firebase || '';
+
+  questions.forEach(q=>{
+    const a = rec.answers[q.id] || { answer:null, note:'' };
+    state[q.id].answer = a.answer;
+    state[q.id].note = a.note || '';
+    document.querySelectorAll(`.yn-btn[data-id="${q.id}"]`).forEach(b=>{
+      b.classList.toggle('active', b.dataset.val === a.answer);
+    });
+    updateNoteVisibility(q.id);
+    if (q.id !== 19 && q.id !== 20){
+      const inp = document.getElementById('note-'+q.id);
+      if (inp) inp.value = a.note || '';
+    }
+  });
+
+  const savedDeviceNames = (rec.answers[19] && rec.answers[19].note) ? rec.answers[19].note.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  document.querySelectorAll('.device-check').forEach(cb=>{
+    cb.checked = savedDeviceNames.includes(cb.dataset.name);
+  });
+  const knownNames = deviceList.map(d=>d.name);
+  const otherDevices = savedDeviceNames.filter(n=>!knownNames.includes(n));
+  const devOtherInput = document.getElementById('deviceOtherInput');
+  if (devOtherInput) devOtherInput.value = otherDevices.join(', ');
+  const osOtherInput = document.getElementById('osOtherInput');
+  if (osOtherInput) osOtherInput.value = '';
+  recomputeDeviceAndOSSummary();
+
+  updateProgress();
+  window.scrollTo({ top: document.getElementById('tab-checklist').offsetTop - 20, behavior:'smooth' });
+}
+
+async function copyChecklistRecord(id){
+  const list = await getChecklistHistoryList();
+  const rec = list.find(x=>x.id===id);
+  if (!rec) return;
+  const text = buildChecklistReportTextFromAnswers(
+    { ticket: rec.ticket, appsLink: rec.appsLink, testlink: rec.testlink, firebase: rec.firebase },
+    rec.answers
+  );
+  try{
+    await navigator.clipboard.writeText(text);
+    alert('Copied that record\'s checklist report to clipboard.');
+  } catch(e){ alert('Could not copy — clipboard access blocked.'); }
+}
+
+async function deleteChecklistRecord(id){
+  if (!confirm('Delete this checklist record?')) return;
+  let list = await getChecklistHistoryList();
+  list = list.filter(x=>x.id!==id);
+  await saveRecord(userKey('checklisthist'), list);
+  renderChecklistHistory(list);
 }
 
 function copyBox(textareaId, feedbackId){
@@ -1208,11 +1778,9 @@ function analyzeCrashMetrics() {
 
   document.getElementById('crashAnalysisResultsBlock').style.display = 'block';
   
-  // Step 1 Content Mapping
   const contextText = `• Feature Purpose: Subscription Checkout & Live Plan Processing (Redirection & Gateway Callback Context)\n• UI Elements Involved: Paywall view sheets, dynamic subscription selection buttons, loader dialogues, retry snackbars\n• User Interaction Flow: User opens payment dashboard -> selects plan premium variant -> triggers runtime checkout module -> gets response hook vector\n• Conditional Flags Detected: Variant 'b_dynamic_paywall' evaluation toggles dynamic localized billing vectors.\n• API Dependencies: Razorpay checkout engine thread synchronization, background subscription tracking hooks.`;
   document.getElementById('crashContextBox').textContent = contextText;
 
-  // Table 1 Data Generation (Predictive Bug Cases)
   const bugsData = [
     { scenario: "Rapid Action Gateways", case: "Multi-click validation checks", desc: "User continuously hammers premium payment trigger button before gateway interface rendering frame completes.", area: "User Behavior Bugs", prio: "High" },
     { scenario: "UI Layout Adaptability", case: "Truncated price parameters", desc: "Dynamic values inside localized payment modules break bounds or overlap boundary fields on small viewport devices.", area: "UI Bugs", prio: "Medium" },
@@ -1232,7 +1800,6 @@ function analyzeCrashMetrics() {
     </tr>`;
   });
 
-  // Table 2 Data Generation (Crash Scenarios)
   const crashData = [
     { scenario: "Null Object Vector Protection", condition: "Null data returned from payload key matrix maps", cause: "Attempting call mapping against references missing runtime serialization parameters.", expected: "Fallback safely into structural default state map structures.", prio: "High" },
     { scenario: "Lifecycle Transaction Constraints", condition: "Screen rotation when transaction sequence processing framework loads", cause: "Fragment commits running after activity calls its internal context clean execution routines.", expected: "Preserve reference states via local state bundle variables safely.", prio: "High" },
@@ -1250,8 +1817,7 @@ function analyzeCrashMetrics() {
       <td><span class="prio-badge ${c.prio.toLowerCase()}">${c.prio}</span></td>
     </tr>`;
   });
-
-  // Flat Export Text Assembly
+	
   let outLines = [];
   outLines.push("PREDICTIVE RISK ANALYSIS REPORT");
   outLines.push("===============================");
@@ -1272,6 +1838,22 @@ function analyzeCrashMetrics() {
 document.querySelector(`.yn-btn[data-id="1"][data-val="No"]`).classList.add('active');
 computeSize();
 updateProgress();
+
+/* ---------------- App bootstrap ---------------- */
+async function initApp(){
+  await loadRefApp();
+  const sizeList = await getSizeHistoryList();
+  renderSizeHistory(sizeList);
+  const checklistList = await getChecklistHistoryList();
+  renderChecklistHistory(checklistList);
+}
+
+if (currentUsername){
+  renderUserBadge();
+  initApp();
+} else {
+  showUsernameGate();
+}
 </script>
 </body>
 </html>
