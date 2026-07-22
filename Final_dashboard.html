@@ -271,6 +271,20 @@
   .prio-badge.high { background: var(--rust-bg); color: var(--rust); }
   .prio-badge.medium { background: var(--amber-bg); color: var(--amber); }
   .prio-badge.low { background: #EEF1EC; color: var(--muted); }
+  .prio-badge.critical { background: var(--rust); color: #fff; }
+
+  /* Dynamic crash report card (Crash Finder tab) */
+  .crash-report-card{ border:1px solid var(--line-soft); border-radius:10px; padding:18px 20px; background:#fff; }
+  .cr-badge-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .cr-badge{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:#F9FAF7; color:var(--muted); }
+  .cr-section{ margin-bottom:16px; }
+  .cr-section:last-child{ margin-bottom:0; }
+  .cr-section h4{ font-family:'Space Grotesk', sans-serif; font-size:13.5px; margin:0 0 6px; color:var(--ink); }
+  .cr-section ul{ margin:0; padding-left:18px; font-size:13px; line-height:1.6; color:var(--ink); }
+  .cr-repro-block{ border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:#F9FAF7; }
+  .cr-repro-block .cr-repro-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:12.5px; margin-bottom:6px; }
+  .cr-repro-block ol{ margin:0 0 6px; padding-left:18px; font-size:12.5px; line-height:1.6; }
+  .cr-repro-block .cr-result{ font-size:12px; color:var(--muted); font-style:italic; }
 
   /* Required input highlight border */
   .field input.error-highlight {
@@ -577,6 +591,7 @@
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin: 0 0 8px;">Step 1 — Feature & Context Understanding</h3>
           <div class="hint-box" id="crashContextBox" style="background:#fff; font-family:'Inter', sans-serif; white-space:pre-line;"></div>
 
+          <div style="display:none;">
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin: 18px 0 8px;">Table 1 — Bug Prediction Cases</h3>
           <div class="results-table-container">
             <table class="qa-table" id="bugPredictionTable">
@@ -608,10 +623,16 @@
               <tbody></tbody>
             </table>
           </div>
+          </div>
 
+          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin: 24px 0 8px;">Crash Report Summary</h3>
+          <div class="crash-report-card" id="crashReportCard"></div>
+
+          <div style="display:none;">
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin: 24px 0 8px;">Raw Export Log Output</h3>
           <div class="output-box">
             <textarea id="crashOutputText" readonly style="min-height:240px;"></textarea>
+          </div>
           </div>
         </div>
       </div>
@@ -773,24 +794,52 @@ function clearHistory(){
   if (!confirm('Clear the saved version history from this browser?')) return;
   localStorage.removeItem(HISTORY_KEY);
 }
+function formatHistoryDateTime(isoDate){
+  const dt = new Date(isoDate);
+  const dateStr = dt.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+  let hours = dt.getHours();
+  const minutes = dt.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  return dateStr + ', ' + hours + '.' + minutes + ampm;
+}
+
 function buildSizeHistorySection(hist, currentVersion){
   const withSize = hist.filter(h=>typeof h.sizeMB === 'number');
   if (withSize.length === 0) return '';
+
+  // Compute deltas in chronological (oldest-to-newest) order first, keyed by version
+  const chronological = [...withSize].sort((a,b)=> new Date(a.date) - new Date(b.date));
+  const deltaByVersion = {};
+  let prev = null;
+  chronological.forEach(h=>{
+    if (prev !== null){
+      const d = h.sizeMB - prev;
+      const p = prev > 0 ? (d/prev*100) : 0;
+      deltaByVersion[h.version] = '  (' + (d>=0?'+':'') + d.toFixed(2) + ' MB, ' + (p>=0?'+':'') + p.toFixed(1) + '% vs previous entry)';
+    }
+    prev = h.sizeMB;
+  });
+
+  // Display newest-first, with the current version always pinned to the top
+  let displayOrder = [...withSize].sort((a,b)=> new Date(b.date) - new Date(a.date));
+  const curIdx = displayOrder.findIndex(h => h.version === currentVersion);
+  if (curIdx > 0){
+    const [curItem] = displayOrder.splice(curIdx, 1);
+    displayOrder.unshift(curItem);
+  }
+
   const lines = [];
   lines.push('');
   lines.push('VERSION HISTORY — TRACKED ENTRIES');
   lines.push('------------------------------------------------');
-  let prev = null;
-  withSize.forEach(h=>{
-    let deltaTxt = '';
-    if (prev !== null){
-      const d = h.sizeMB - prev;
-      const p = prev > 0 ? (d/prev*100) : 0;
-      deltaTxt = '  (' + (d>=0?'+':'') + d.toFixed(2) + ' MB, ' + (p>=0?'+':'') + p.toFixed(1) + '% vs absolute tracked history item)';
-    }
-    const marker = h.version === currentVersion ? ' <-- current' : '';
-    lines.push(h.version + ': ' + h.sizeMB.toFixed(2) + ' MB' + deltaTxt + marker);
-    prev = h.sizeMB;
+  displayOrder.forEach(h=>{
+    const isCurrent = h.version === currentVersion;
+    const deltaTxt = deltaByVersion[h.version] || '';
+    const headerLabel = isCurrent ? 'current   ' : '';
+    lines.push('-- ' + headerLabel + '(' + formatHistoryDateTime(h.date) + ')--');
+    lines.push(h.version + ': ' + h.sizeMB.toFixed(2) + ' MB' + deltaTxt);
   });
   return lines.join('\n');
 }
@@ -1261,6 +1310,20 @@ firebaseInput.addEventListener('input', () => {
     updateQuestionAnswer(1, 'Yes');
   } else {
     updateQuestionAnswer(1, 'No');
+  }
+});
+
+/* TestLink Link Auto Selection Logic (mirrors Firebase/Q1 above) */
+const testlinkTopInput = document.getElementById('testlinkLink');
+testlinkTopInput.addEventListener('input', () => {
+  const value = testlinkTopInput.value.trim();
+  if (value !== '') {
+    updateQuestionAnswer(17, 'Yes');
+    const noteInput17 = document.getElementById('note-17');
+    if (noteInput17 && !noteInput17.value.trim()) noteInput17.value = value;
+    if (state[17]) state[17].note = value;
+  } else {
+    updateQuestionAnswer(17, 'No');
   }
 });
 
@@ -1769,6 +1832,272 @@ function simulateSampleCrash() {
   analyzeCrashMetrics();
 }
 
+/* ---- Log parsing engine: derives real signal from the pasted log instead of a fixed template ---- */
+function parseCrashLog(logText){
+  const text = logText || '';
+
+  const excMatch = text.match(/([A-Za-z_][\w.]*(?:Exception|Error))\b/);
+  const exceptionType = excMatch ? excMatch[1] : 'Unhandled Exception/Crash';
+
+  let topFrame = null;
+  const frameMatch = text.match(/at\s+([\w$.<>]+)\(([^)]+)\)/);
+  if (frameMatch){
+    topFrame = frameMatch[1] + '(' + frameMatch[2] + ')';
+  } else {
+    const swiftLine = text.split('\n').find(l => /\.swift(:\d+)?/i.test(l));
+    if (swiftLine) topFrame = swiftLine.trim();
+  }
+
+  let platform = 'Unknown / Unspecified';
+  if (/\bjava\.|android\.|kotlin\.|\.java:|\.kt:/i.test(text)) platform = 'Android';
+  else if (/\bns[a-z]*exception|\.swift|uikit|corefoundation|objc_|swift\./i.test(text)) platform = 'iOS';
+
+  let severity = 'Medium';
+  if (/fatal/i.test(text) || /null pointer|null object|nsrangeexception|\bnil\b|double free|use after free|exc_bad_access|dangling/i.test(text)) severity = 'Critical';
+  else if (/network|internet|connectivity|socket|thread|async|memory|\boom\b|lifecycle|activity|fragment|permission|index.?out.?of|paywall|adapty/i.test(text)) severity = 'High';
+
+  return { exceptionType, topFrame, platform, severity };
+}
+
+const SIGNAL_LIBRARY = [
+  { key:'paywall', test:/paywall|adapty/i, flowLabel:'Coin \u2192 Paywall Flow',
+    bug:{ scenario:'Paywall Concurrency', case:'Multiple paywall instances triggered rapidly', desc:'Rapidly opening/closing the paywall (e.g. via a Coins/Store entry point) can spawn overlapping paywall instances that race on shared SDK objects.', area:'Functional Bugs', prio:'High' },
+    crash:{ scenario:'Paywall Object Lifecycle Conflict', condition:'Paywall opened, closed, and reopened in rapid succession', cause:'Paywall SDK object is re-assigned or torn down while a previous instance is still finishing initialization/deallocation', expected:'Guard paywall presentation with an in-flight flag and avoid re-entrant open calls', prio:'High' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:[
+      'Launch app \u2192 Land on Home screen',
+      'Tap on the Coins/Store button that opens the paywall',
+      'Paywall opens',
+      { text:'Immediately:', subs:['Tap "Continue" (or the primary CTA) rapidly (4\u20136 times)'] },
+      { text:'While tapping:', subs:['Swipe down / press close (X) OR use the back gesture'] },
+      'Repeat steps 2\u20135 quickly 2\u20133 times'
+    ], result:'App crashes due to overlapping paywall instances' },
+    trigger:[
+      'Multiple paywall instances opening concurrently',
+      'Paywall SDK object re-assignment before the previous instance finishes',
+      'Paywall UI schema deallocation conflict',
+      'Background thread releasing an already-freed object (double free)'
+    ],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:[
+      'Open app \u2192 Tap Coins/Store button',
+      { text:'As soon as the paywall starts loading:', subs:['Turn Internet OFF'] },
+      'Tap Continue multiple times',
+      'Turn Internet ON again',
+      'Repeat quickly'
+    ], result:'Crash reproduces faster when connectivity is toggled during paywall load' },
+    rootCause:'A paywall instance was re-entered or torn down while a prior instance was still finishing initialization/deallocation.',
+    fix:'Guard paywall presentation with an in-flight flag, ignore re-entrant open calls, and make SDK object teardown safe against a still-loading instance.',
+    qa:'Stress-test rapid open/close/reopen of the paywall, with and without a stable connection.' },
+
+  { key:'nullref', test:/null pointer|nullpointerexception|null object reference|nsrangeexception|\bnil\b|unwrapping.*nil/i,
+    bug:{ scenario:'Null / Uninitialized State', case:'Access before initialization', desc:'A required object or reference is accessed before it is initialized, or after it has already been released, leading to a null/nil dereference.', area:'Functional Bugs', prio:'High' },
+    crash:{ scenario:'Null Object Vector Protection', condition:'Null/nil reference passed where a valid object is expected', cause:'Reference not initialized on this code path, or released before use', expected:'Add null/nil checks and safe fallback defaults before dereferencing', prio:'High' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Launch the app fresh (cold start)','Navigate to the affected screen/flow','Trigger the action that touches the uninitialized reference'], result:'App crashes with a null/nil reference exception' },
+    trigger:['Reference not initialized on this code path, or already released before use','Null/nil object accessed without a safety check'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Repeat the same action 2\u20133 times in quick succession right after cold start','Background the app immediately after triggering the action','Resume and observe'], result:'Crash reproduces faster under repeated/interrupted triggering' },
+    rootCause:'A null/nil object reference was dereferenced without a safety check.',
+    fix:'Add null/nil checks before use, and confirm the object is fully initialized earlier in the lifecycle.',
+    qa:'Retest all entry points to this screen, especially cold start and deep-link entry.' },
+
+  { key:'network', test:/network|internet|connectivity|socket|offline|no.?internet|timeout/i,
+    bug:{ scenario:'Connectivity Handling', case:'Action performed with no/unstable network', desc:'User performs a network-dependent action while offline, or the connection drops mid-request.', area:'Functional Bugs', prio:'High' },
+    crash:{ scenario:'Network State Disconnects', condition:'Internet connection drops or times out mid-request', cause:'Socket/connection timeout thrown during an in-flight request callback', expected:'Surface a friendly retry/error state instead of crashing', prio:'Medium' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Install and launch the app','Disable internet (Airplane mode / WiFi off)','Open the affected screen/flow'], result:'App crashes or fails to handle the offline state' },
+    trigger:['Socket/connection timeout thrown during an in-flight request callback','The network callback path does not handle a dropped or absent connection safely'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Launch with internet ON','Trigger the affected flow',{ text:'As soon as it starts loading:', subs:['Turn Internet OFF'] },'Tap the primary action multiple times','Turn Internet ON again and repeat quickly'], result:'Crash due to a timing/race condition on the network callback' },
+    rootCause:'The network callback path does not handle a dropped or absent connection safely.',
+    fix:'Wrap network calls in try/catch with timeout handling, and show a retry UI instead of crashing on failure.',
+    qa:'Test with airplane mode, throttled/flaky network, and mid-request disconnects.' },
+
+  { key:'lifecycle', test:/onCreate|onResume|onPause|onDestroy|viewDidLoad|viewWillAppear|activity|fragment|lifecycle/i,
+    bug:{ scenario:'Lifecycle State Handling', case:'Action spans an activity/fragment/view lifecycle transition', desc:'Code executes after the hosting Activity/Fragment/ViewController is no longer valid (post-rotation, backgrounding, or destroy).', area:'Functional Bugs', prio:'High' },
+    crash:{ scenario:'Lifecycle Transaction Constraints', condition:'Screen rotation or background/foreground switch mid-operation', cause:'A callback or fragment transaction runs after the host has moved past a valid lifecycle state', expected:'Guard callbacks with lifecycle-state checks before touching UI/transactions', prio:'High' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Launch the app / open the affected screen','Immediately background the app (Home button) or rotate the device','Resume the app'], result:'App may crash due to invalid state restoration' },
+    trigger:['A callback or fragment/view transaction runs after the host has moved past a valid lifecycle state','Reference states not preserved across the transition'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Open the affected screen','Rotate the device rapidly 2\u20133 times while it is loading','Background and resume immediately after'], result:'Crash reproduces faster under rapid lifecycle transitions' },
+    rootCause:'A callback executed after the hosting component left a valid lifecycle state.',
+    fix:'Check isAdded()/isFinishing() (Android) or the view lifecycle state (iOS) before touching UI in async callbacks.',
+    qa:'Test rapid backgrounding/foregrounding and screen rotation during in-flight operations.' },
+
+  { key:'memory', test:/outofmemory|\boom\b|low.?memory|bitmap|memory pressure/i,
+    bug:{ scenario:'Memory Pressure Handling', case:'Large resource allocation on constrained devices', desc:'The app allocates memory (e.g. large images/objects) without limits, risking an out-of-memory crash on low-RAM devices.', area:'Performance Bugs', prio:'Medium' },
+    crash:{ scenario:'Low Memory / OOM', condition:'Device is low on available RAM during the affected flow', cause:'Uncapped allocation of large objects (bitmaps, caches, buffers)', expected:'Downsample/release resources and degrade gracefully under memory pressure', prio:'Medium' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Use a low-RAM device (\u22642GB) or a memory-limited emulator','Enable "Don\'t keep activities" in Developer Options (Android)','Repeat the affected flow'], result:'Crash under memory pressure' },
+    trigger:['Uncapped allocation of large objects (bitmaps, caches, buffers)','Device runs low on available RAM during the affected flow'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Open several memory-heavy screens first to raise memory pressure','Then trigger the affected flow','Repeat quickly without closing the app'], result:'Crash reproduces faster once memory pressure has been built up' },
+    rootCause:'Memory is allocated without limits, causing an out-of-memory crash on constrained devices.',
+    fix:'Downsample large images before loading, release unused resources promptly, and cap in-memory caches.',
+    qa:'Test on low-RAM devices and with "Don\'t keep activities" enabled.' },
+
+  { key:'thread', test:/thread|async|handler|looper|dispatchqueue|race condition|concurrent/i,
+    bug:{ scenario:'Concurrency / Race Conditions', case:'Multiple rapid triggers of the same action', desc:'The same action is triggered multiple times in quick succession before the first call completes, causing overlapping state updates.', area:'User Behavior Bugs', prio:'High' },
+    crash:{ scenario:'Rapid Action / Race Condition', condition:'Same action triggered multiple times before the first completes', cause:'Overlapping async callbacks mutate shared state without synchronization', expected:'Debounce the action or guard it with an in-flight flag', prio:'High' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Open the affected screen/flow','Rapidly tap/trigger the action multiple times in quick succession','Observe the callback handling'], result:'Crash or inconsistent state from overlapping execution' },
+    trigger:['Overlapping asynchronous calls mutate shared state without synchronization','Multiple instances of the same flow open concurrently'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Trigger the action','Immediately swipe/close or navigate away before it completes','Repeat the trigger + close sequence 2\u20133 times quickly'], result:'Crash reproduces faster when the flow is interrupted mid-execution' },
+    rootCause:'Overlapping asynchronous calls mutate shared state without synchronization.',
+    fix:'Debounce the trigger, disable the control while in-flight, or synchronize access to shared state.',
+    qa:'Stress-test with rapid repeated taps and concurrent triggers.' },
+
+  { key:'payment', test:/payment|checkout|transaction|subscription|billing|razorpay|stripe/i,
+    bug:{ scenario:'Payment Flow Edge Cases', case:'Multi-click / interrupted checkout', desc:'The user interacts with the payment/checkout flow unexpectedly (rapid taps, backgrounding mid-transaction, plan switching).', area:'Functional Bugs', prio:'High' },
+    crash:{ scenario:'Payment Callback Handling', condition:'Gateway callback returns after the hosting screen/data state has changed', cause:'Callback assumes a UI/data state that no longer matches (screen closed, plan changed)', expected:'Validate current state before acting on the payment callback result', prio:'High' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Open the payment/checkout screen','Rapidly tap the pay/submit button multiple times','Observe the callback handling'], result:'Crash or inconsistent transaction state' },
+    trigger:['Gateway callback assumes a UI/data state that no longer matches (screen closed, plan changed)','Multiple submission attempts fire overlapping gateway callbacks'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Open the payment/checkout screen',{ text:'As soon as it starts loading:', subs:['Turn Internet OFF'] },'Tap the submit/continue button multiple times','Turn Internet ON again and repeat quickly'], result:'Crash reproduces faster with connectivity toggled during the transaction' },
+    rootCause:'The payment gateway callback fires against a screen/data state that has since changed.',
+    fix:'Validate the current screen/data state before processing the payment callback, and guard against duplicate submissions.',
+    qa:'Test rapid re-taps on pay, backgrounding mid-transaction, and plan switching during checkout.' },
+
+  { key:'permission', test:/securityexception|permission denied|\bpermission\b/i,
+    bug:{ scenario:'Permission Handling', case:'Action requires a permission not yet granted', desc:'A protected API/resource is accessed before the required runtime permission has been granted, or after it was revoked.', area:'Functional Bugs', prio:'Medium' },
+    crash:{ scenario:'Missing/Revoked Permission', condition:'Permission is denied or revoked at the time of access', cause:'Code assumes the permission is already granted', expected:'Check permission state at the point of use and request/handle gracefully', prio:'Medium' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Revoke the relevant permission in device Settings','Trigger the affected flow','Observe handling of the missing permission'], result:'Crash or unhandled state instead of a permission prompt/error' },
+    trigger:['Code assumes the permission is already granted without checking at the point of use'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Revoke the permission mid-session while the affected screen is open','Trigger the action immediately after revoking','Repeat quickly'], result:'Crash reproduces faster when permission is revoked mid-flow' },
+    rootCause:'The affected code path assumes a permission is granted without checking at the point of use.',
+    fix:'Check permission state immediately before use and request it, or show a clear fallback if denied.',
+    qa:'Test with the permission denied, revoked mid-session, and granted-then-revoked.' },
+
+  { key:'database', test:/sqlite|realm|coredata|\bcursor\b|database/i,
+    bug:{ scenario:'Local Data Access', case:'Query/write against local storage', desc:'A database/local-storage operation runs against a closed connection, stale schema, or missing migration.', area:'Functional Bugs', prio:'Medium' },
+    crash:{ scenario:'Local Storage Access Error', condition:'Database accessed after close, or with a mismatched schema', cause:'Connection/cursor used outside its valid lifetime, or migration not applied', expected:'Guard DB access with lifecycle-aware checks and confirm migrations run first', prio:'Medium' },
+    primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Trigger the flow that reads/writes local data','Force-close or background the app mid-write','Reopen the app and repeat the flow'], result:'Crash or corrupted local data state' },
+    trigger:['Connection/cursor used outside its valid lifetime, or migration not applied'],
+    alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Trigger the flow that reads/writes local data','Force-close the app mid-write','Reopen immediately and repeat'], result:'Crash reproduces faster under repeated forced interruption' },
+    rootCause:'A local storage operation ran against an invalid connection or unmigrated schema.',
+    fix:'Guard database access with lifecycle-aware checks, and verify migrations complete before first use.',
+    qa:'Test app updates that carry forward existing local data, and force-close during writes.' }
+];
+
+const DEFAULT_SIGNAL = {
+  key:'general',
+  bug:{ scenario:'General Functional Check', case:'Core flow walkthrough', desc:'Re-run the primary user flow around where this exception was captured, watching for edge-case inputs and timing.', area:'Functional Bugs', prio:'Medium' },
+  crash:{ scenario:'Unhandled Exception', condition:'Exception thrown without a matching try/catch or error boundary', cause:'The specific failure condition is not yet isolated from the log provided', expected:'Add a try/catch (or equivalent) around this code path with a safe fallback', prio:'Medium' },
+  primary:{ title:'Primary Crash Path (Most Reliable)', steps:['Launch the app','Navigate to the affected screen/flow','Repeat the action that triggered the log'], result:'Crash reproduces as captured in the log' },
+  trigger:['The log did not match a known crash pattern \u2014 treat this as a starting point and confirm against the full stack trace.'],
+  alternate:{ title:'Alternate Faster Crash Scenario (Higher Success Rate)', steps:['Repeat the same action rapidly, 2\u20133 times in a row','Background/foreground the app between attempts'], result:'May reproduce faster under repeated or interrupted triggering' },
+  rootCause:'The log did not match a known crash pattern — treat this as a starting point and confirm against the full stack trace.',
+  fix:'Wrap the affected call in error handling and log additional context to narrow down the exact trigger.',
+  qa:'Re-run the flow with verbose logging enabled to capture more context on the next occurrence.'
+};
+
+const ALTERNATE_PRIORITY = ['paywall','network','payment','thread','memory','lifecycle','permission','database','nullref'];
+
+function stepsToHtml(steps){
+  return '<ol>' + steps.map(s => {
+    if (typeof s === 'string') return `<li>${s}</li>`;
+    const subs = (s.subs || []).map(x => `<li>${x}</li>`).join('');
+    return `<li>${s.text}<ul>${subs}</ul></li>`;
+  }).join('') + '</ol>';
+}
+
+function stepsToText(steps){
+  return steps.map((s, i) => {
+    if (typeof s === 'string') return '  ' + (i+1) + '. ' + s;
+    const subLines = (s.subs || []).map(x => '     - ' + x).join('\n');
+    return '  ' + (i+1) + '. ' + s.text + (subLines ? '\n' + subLines : '');
+  }).join('\n');
+}
+
+function buildCrashAnalysis(logText){
+  const parsed = parseCrashLog(logText);
+  const matched = SIGNAL_LIBRARY.filter(s => s.test.test(logText));
+  const signals = matched.length ? matched : [DEFAULT_SIGNAL];
+
+  const bugsData = signals.map(s => s.bug).slice(0, 5);
+  const crashData = signals.map(s => s.crash).slice(0, 5);
+
+  const primary = signals[0].primary;
+
+  const triggerBullets = [...new Set(signals.flatMap(s => s.trigger || []))].slice(0, 6);
+
+  let alternate = null;
+  for (const key of ALTERNATE_PRIORITY){
+    const match = signals.find(s => s.key === key && s.alternate);
+    if (match){ alternate = match.alternate; break; }
+  }
+  if (!alternate) alternate = (signals.find(s => s.alternate) || DEFAULT_SIGNAL).alternate;
+
+  const rootCauseLines = signals.map(s => s.rootCause);
+  const fixLines = signals.map(s => s.fix);
+  const qaLines = [...new Set(signals.map(s => s.qa))];
+
+  const flowSignal = signals.find(s => s.flowLabel);
+  const title = flowSignal
+    ? 'Minimal Crash Reproduction Steps (Based on ' + flowSignal.flowLabel + ')'
+    : parsed.exceptionType + ' — ' + parsed.platform + ' Crash';
+
+  const contextText = [
+    '• Detected Exception: ' + parsed.exceptionType,
+    parsed.topFrame ? '• Top Stack Frame: ' + parsed.topFrame : null,
+    '• Platform Signature: ' + parsed.platform,
+    '• Matched Risk Signals: ' + signals.map(s => s.key).join(', ')
+  ].filter(Boolean).join('\n');
+
+  return { parsed, bugsData, crashData, primary, triggerBullets, alternate, rootCauseLines, fixLines, qaLines, title, contextText };
+}
+
+function renderCrashReportCard(a){
+  const sevClass = a.parsed.severity.toLowerCase();
+
+  document.getElementById('crashReportCard').innerHTML = `
+    <div class="cr-badge-row">
+      <span class="cr-badge">Platform: ${a.parsed.platform}</span>
+      <span class="prio-badge ${sevClass}">${a.parsed.severity}</span>
+      ${a.parsed.topFrame ? `<span class="cr-badge">Frame: ${a.parsed.topFrame}</span>` : ''}
+    </div>
+    <div class="cr-section"><h4>Root Cause</h4><ul>${a.rootCauseLines.map(l=>`<li>${l}</li>`).join('')}</ul></div>
+    <div class="cr-section">
+      <h4>${a.title}</h4>
+      <div class="cr-repro-block">
+        <div class="cr-repro-title">${a.primary.title}</div>
+        ${stepsToHtml(a.primary.steps)}
+        <div class="cr-result">Result: ${a.primary.result}</div>
+      </div>
+      <div class="cr-repro-block">
+        <div class="cr-repro-title">Expected Crash Trigger</div>
+        <ul>${a.triggerBullets.map(l=>`<li>${l}</li>`).join('')}</ul>
+      </div>
+      <div class="cr-repro-block">
+        <div class="cr-repro-title">${a.alternate.title}</div>
+        ${stepsToHtml(a.alternate.steps)}
+        <div class="cr-result">Result: ${a.alternate.result}</div>
+      </div>
+    </div>
+    <div class="cr-section"><h4>Suggested Fix</h4><ul>${a.fixLines.map(l=>`<li>${l}</li>`).join('')}</ul></div>
+    <div class="cr-section"><h4>QA Focus Areas</h4><ul>${a.qaLines.map(l=>`<li>${l}</li>`).join('')}</ul></div>
+  `;
+}
+
+function buildCrashReportPlainText(a){
+  const lines = [];
+  lines.push('CRASH TITLE: ' + a.title);
+  lines.push('PLATFORM: ' + a.parsed.platform);
+  lines.push('SEVERITY: ' + a.parsed.severity);
+  if (a.parsed.topFrame) lines.push('TOP FRAME: ' + a.parsed.topFrame);
+  lines.push('');
+  lines.push('ROOT CAUSE:');
+  a.rootCauseLines.forEach(l => lines.push('- ' + l));
+  lines.push('');
+  lines.push(a.primary.title + ':');
+  lines.push(stepsToText(a.primary.steps));
+  lines.push('  Result: ' + a.primary.result);
+  lines.push('');
+  lines.push('EXPECTED CRASH TRIGGER:');
+  a.triggerBullets.forEach(l => lines.push('- ' + l));
+  lines.push('');
+  lines.push(a.alternate.title + ':');
+  lines.push(stepsToText(a.alternate.steps));
+  lines.push('  Result: ' + a.alternate.result);
+  lines.push('');
+  lines.push('SUGGESTED FIX:');
+  a.fixLines.forEach(l => lines.push('- ' + l));
+  lines.push('');
+  lines.push('QA FOCUS AREAS:');
+  a.qaLines.forEach(l => lines.push('- ' + l));
+  return lines.join('\n');
+}
+
 function analyzeCrashMetrics() {
   const logContent = document.getElementById('crashLogRawText').value.trim();
   if(!logContent) {
@@ -1777,20 +2106,13 @@ function analyzeCrashMetrics() {
   }
 
   document.getElementById('crashAnalysisResultsBlock').style.display = 'block';
-  
-  const contextText = `• Feature Purpose: Subscription Checkout & Live Plan Processing (Redirection & Gateway Callback Context)\n• UI Elements Involved: Paywall view sheets, dynamic subscription selection buttons, loader dialogues, retry snackbars\n• User Interaction Flow: User opens payment dashboard -> selects plan premium variant -> triggers runtime checkout module -> gets response hook vector\n• Conditional Flags Detected: Variant 'b_dynamic_paywall' evaluation toggles dynamic localized billing vectors.\n• API Dependencies: Razorpay checkout engine thread synchronization, background subscription tracking hooks.`;
-  document.getElementById('crashContextBox').textContent = contextText;
 
-  const bugsData = [
-    { scenario: "Rapid Action Gateways", case: "Multi-click validation checks", desc: "User continuously hammers premium payment trigger button before gateway interface rendering frame completes.", area: "User Behavior Bugs", prio: "High" },
-    { scenario: "UI Layout Adaptability", case: "Truncated price parameters", desc: "Dynamic values inside localized payment modules break bounds or overlap boundary fields on small viewport devices.", area: "UI Bugs", prio: "Medium" },
-    { scenario: "State Machine Handling", case: "Background lifecycle resume", desc: "App loses focus or goes to background environment context while transaction transaction framework executes validation step.", area: "Functional Bugs", prio: "High" },
-    { scenario: "Logic Control Divergence", case: "Feature flag mismatch layout", desc: "Dynamic payload configuration misses mapping parameters leading to unexpected structural display of basic paywall views.", area: "Logic Bugs", prio: "Medium" }
-  ];
+  const analysis = buildCrashAnalysis(logContent);
+  document.getElementById('crashContextBox').textContent = analysis.contextText;
 
   const bugBody = document.querySelector('#bugPredictionTable tbody');
   bugBody.innerHTML = '';
-  bugsData.forEach(b => {
+  analysis.bugsData.forEach(b => {
     bugBody.innerHTML += `<tr>
       <td><strong>${b.scenario}</strong></td>
       <td>${b.case}</td>
@@ -1800,15 +2122,9 @@ function analyzeCrashMetrics() {
     </tr>`;
   });
 
-  const crashData = [
-    { scenario: "Null Object Vector Protection", condition: "Null data returned from payload key matrix maps", cause: "Attempting call mapping against references missing runtime serialization parameters.", expected: "Fallback safely into structural default state map structures.", prio: "High" },
-    { scenario: "Lifecycle Transaction Constraints", condition: "Screen rotation when transaction sequence processing framework loads", cause: "Fragment commits running after activity calls its internal context clean execution routines.", expected: "Preserve reference states via local state bundle variables safely.", prio: "High" },
-    { scenario: "Network State Disconnects", condition: "Internet route completely goes dark midway through critical payment request thread", cause: "Socket connection timeouts thrown during state callback validation sequences.", expected: "Surface user friendly action warning dialogue frames safely.", prio: "Medium" }
-  ];
-
   const crashBody = document.querySelector('#crashPossibilityTable tbody');
   crashBody.innerHTML = '';
-  crashData.forEach(c => {
+  analysis.crashData.forEach(c => {
     crashBody.innerHTML += `<tr>
       <td><strong>${c.scenario}</strong></td>
       <td>${c.condition}</td>
@@ -1817,20 +2133,15 @@ function analyzeCrashMetrics() {
       <td><span class="prio-badge ${c.prio.toLowerCase()}">${c.prio}</span></td>
     </tr>`;
   });
-	
+
+  renderCrashReportCard(analysis);
+
   let outLines = [];
   outLines.push("PREDICTIVE RISK ANALYSIS REPORT");
   outLines.push("===============================");
-  outLines.push("\nSTEP 1 — FEATURE UNDERSTANDING\n" + contextText);
-  outLines.push("\nTABLE 1 — BUG PREDICTION CASES");
-  bugsData.forEach(b => {
-    outLines.push(`• [${b.prio}] Scenario: ${b.scenario} | Case: ${b.case} | Risk: ${b.area}\n  Desc: ${b.desc}`);
-  });
-  outLines.push("\nTABLE 2 — CRASH POSSIBILITY SCENARIOS");
-  crashData.forEach(c => {
-    outLines.push(`• [${c.prio}] Scenario: ${c.scenario} | Condition: ${c.condition}\n  Technical Cause: ${c.cause}\n  Expected Handling: ${c.expected}`);
-  });
-  
+  outLines.push("\nSTEP 1 — FEATURE UNDERSTANDING\n" + analysis.contextText);
+  outLines.push("\nCRASH REPORT SUMMARY\n" + buildCrashReportPlainText(analysis));
+
   document.getElementById('crashOutputText').value = outLines.join('\n');
 }
 
