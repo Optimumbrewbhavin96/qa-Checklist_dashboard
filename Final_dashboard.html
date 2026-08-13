@@ -8,43 +8,73 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper: #EEF1EC;
-    --surface: #FBFBF8;
-    --ink: #1E2A22;
-    --muted: #5B6B5F;
-    --line: #C9D2C4;
-    --line-soft: #DEE4D9;
-    --green: #3F7A5D;
-    --green-bg: #E7F0EA;
-    --amber: #C7861F;
-    --amber-bg: #FBF0DD;
-    --rust: #B8503B;
-    --rust-bg: #F8E7E2;
+    --paper: #0A0C0E;
+    --surface: #15171B;
+    --surface-2: #1C1F24;
+    --surface-hover: #262A31;
+    --sidebar-bg: #0D0F12;
+    --ink: #F0F1EE;
+    --muted: #8B929B;
+    --line: #282C33;
+    --line-soft: #20232A;
+    --green: #4FBE86;
+    --green-bg: rgba(79,190,134,0.15);
+    --amber: #F2A93E;
+    --amber-bg: rgba(242,169,62,0.16);
+    --rust: #EC6E5E;
+    --rust-bg: rgba(236,110,94,0.15);
+    --info: #5FA8E0;
+    --info-bg: rgba(95,168,224,0.15);
+    --on-accent: #1A1408;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.4), 0 6px 20px rgba(0,0,0,0.28);
+    --shadow-pop: 0 20px 60px rgba(0,0,0,0.55);
+    --scrollbar-track: var(--paper);
+    --scrollbar-thumb: #33383F;
+  }
+  html[data-theme="light"]{
+    --paper: #F3F4F1;
+    --surface: #FFFFFF;
+    --surface-2: #F3F4F1;
+    --surface-hover: #E9EBE5;
+    --sidebar-bg: #FFFFFF;
+    --ink: #1B1F1C;
+    --muted: #667066;
+    --line: #DFE3DA;
+    --line-soft: #EAEDE6;
+    --green: #2F7A54;
+    --green-bg: #E4F1E9;
+    --amber: #B4740F;
+    --amber-bg: #FBEED9;
+    --rust: #A8432E;
+    --rust-bg: #F7E4DF;
+    --info: #2E6DA4;
+    --info-bg: #E3EFF9;
+    --on-accent: #FFFFFF;
+    --shadow-card: 0 1px 2px rgba(30,40,30,0.05), 0 4px 14px rgba(30,40,30,0.06);
+    --shadow-pop: 0 20px 60px rgba(30,40,30,0.20);
+    --scrollbar-track: var(--paper);
+    --scrollbar-thumb: #D3D7CD;
   }
   *{ box-sizing:border-box; }
+  ::-webkit-scrollbar{ width:11px; height:11px; }
+  ::-webkit-scrollbar-track{ background:var(--scrollbar-track); }
+  ::-webkit-scrollbar-thumb{ background:var(--scrollbar-thumb); border-radius:999px; border:3px solid var(--scrollbar-track); }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--muted); }
   body{
     margin:0;
     background:
-      radial-gradient(ellipse at top left, rgba(255,255,255,0.6), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 100% -10%, var(--amber-bg), transparent 60%),
       var(--paper);
     color:var(--ink);
     font-family:'Inter', sans-serif;
     min-height:100vh;
-    padding: 28px 16px 60px;
+    padding: 0;
+    transition: background-color .2s ease, color .2s ease;
   }
-  .wrap{ max-width: 920px; margin:0 auto; }
-
-  /* Header */
-  .masthead{
-    display:flex; align-items:flex-start; justify-content:space-between;
-    gap:20px; margin-bottom: 22px; flex-wrap:wrap;
+  body, .top-header, .top-nav, .panel-shell, .stat-card, .form-card, .preview-card, .module-card,
+  input, textarea, select, .tab-btn, button.ghost, .checkbox-group, .context-line, .modal-card{
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
   }
-  .masthead h1{
-    font-family:'Space Grotesk', sans-serif;
-    font-size: 28px; font-weight:700; margin:0 0 4px;
-    letter-spacing: -0.01em;
-  }
-  .masthead p{ margin:0; color:var(--muted); font-size:14px; }
 
   .version-track-row{
     display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
@@ -52,43 +82,190 @@
   }
   .small-ghost{ font-size:12px; padding:8px 13px; color:var(--muted); }
   .small-ghost:hover{ color:var(--ink); }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--muted); margin-bottom:6px; display:block;
-  }
 
-  /* Tabs styled like folder tabs */
-  .tabs{ display:flex; gap:6px; margin-bottom: -1px; position:relative; z-index:2; }
-  .tab-btn{
+  /* Top horizontal navigation items */
+  .top-nav .tab-btn{
+    display:inline-flex; align-items:center; gap:8px; width:auto; text-align:left;
     font-family:'Space Grotesk', sans-serif;
-    font-weight:600; font-size:14px;
-    padding: 12px 20px 13px;
-    background: #E2E7DD;
-    border: 1px solid var(--line);
-    border-bottom:none;
-    border-radius: 10px 10px 0 0;
+    font-weight:600; font-size:13.5px;
+    padding: 9px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
     color: var(--muted);
     cursor:pointer;
+    white-space:nowrap;
     transition: all .15s ease;
   }
   .tab-btn.active{
-    background: var(--surface);
-    color: var(--ink);
-    box-shadow: 0 -2px 0 rgba(0,0,0,0.02) inset;
+    background: var(--amber);
+    color: var(--on-accent);
   }
-  .tab-btn:not(.active):hover{ background:#D9E0D2; }
+  .tab-btn:not(.active):hover{ background:var(--surface-hover); color:var(--ink); }
 
   .panel-shell{
     background: var(--surface);
     border:1px solid var(--line);
-    border-radius: 0 12px 12px 12px;
+    border-radius: 14px;
     padding: 28px;
     position:relative;
+    box-shadow: var(--shadow-card);
   }
   .tab-panel{ display:none; }
   .tab-panel.active{ display:block; animation: fadeIn .25s ease; }
   @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ============ App shell: top header + horizontal nav + main area ============ */
+  .app-shell{ display:flex; flex-direction:column; min-height:100vh; }
+  .top-header{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    background:var(--sidebar-bg); border-bottom:1px solid var(--line); padding:14px 30px;
+  }
+  .top-header-brand{
+    display:flex; align-items:center; gap:10px; font-family:'Space Grotesk', sans-serif;
+    font-weight:700; font-size:16.5px; color:var(--ink);
+  }
+  .top-header-brand .brand-icon{
+    width:30px; height:30px; border-radius:8px; background:var(--amber-bg); color:var(--amber);
+    display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
+  }
+  .top-header-right{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+
+  .top-nav{
+    display:flex; gap:6px; flex-wrap:wrap;
+    background:var(--surface); border-bottom:1px solid var(--line); padding:10px 30px;
+  }
+  .main-area{ flex:1; min-width:0; padding: 26px 30px 60px; max-width:1180px; width:100%; margin:0 auto; }
+
+  /* Active module mini-card (top header) + Switch module modal trigger */
+  .module-card{
+    width:230px;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+    padding:11px 13px; cursor:pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .module-card:hover{ border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-bg); transform:translateY(-1px); }
+  .module-card-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;
+  }
+  .module-round-badge{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; background:var(--amber-bg); color:var(--amber);
+    border-radius:999px; padding:2px 7px; flex-shrink:0;
+  }
+  .module-card-project{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px; color:var(--ink);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .module-card-module{ font-size:12px; color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .module-card.empty .module-card-project{ color:var(--muted); font-style:italic; font-weight:500; }
+
+  /* Sidebar profile row */
+  .profile-row{ display:flex; align-items:center; gap:9px; padding:8px 6px; }
+  .profile-avatar{
+    width:32px; height:32px; border-radius:50%; background:var(--amber); color:var(--on-accent);
+    display:flex; align-items:center; justify-content:center; font-weight:700;
+    font-family:'Space Grotesk', sans-serif; font-size:13px; flex-shrink:0;
+  }
+  .profile-info{ overflow:hidden; flex:1; }
+  .profile-name{ font-size:13px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .profile-sub{ font-size:11px; color:var(--muted); cursor:pointer; background:none; border:none; padding:0; font-family:'Inter', sans-serif; }
+  .profile-sub:hover{ color:var(--ink); text-decoration:underline; }
+
+  /* Top bar (page header inside main-area) */
+  .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:22px; flex-wrap:wrap; }
+  .topbar h1{ font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:700; margin:0 0 4px; color:var(--ink); letter-spacing:-0.01em; }
+  .topbar p{ margin:0; color:var(--muted); font-size:13.5px; }
+
+  /* Dashboard stat cards */
+  .stat-cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin-bottom:26px; }
+  .stat-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow: var(--shadow-card);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .stat-card:hover{ transform:translateY(-2px); border-color:var(--amber); }
+  .stat-card-icon{
+    width:38px; height:38px; border-radius:9px; background:var(--amber-bg); color:var(--amber);
+    display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
+  }
+  .stat-card-icon.tint-green{ background:var(--green-bg); color:var(--green); }
+  .stat-card-icon.tint-info{ background:var(--info-bg); color:var(--info); }
+  .stat-card-icon.tint-rust{ background:var(--rust-bg); color:var(--rust); }
+  .stat-card > div:last-child{ min-width:0; flex:1; }
+  .stat-card-label{ font-size:11.5px; color:var(--muted); margin-bottom:2px; }
+  .stat-card-value{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:15.5px; color:var(--ink);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  /* Recent bug reports list (Dashboard home) */
+  .recent-list-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .recent-list-row:last-child{ border-bottom:none; }
+  .recent-list-title{ font-size:13.5px; font-weight:600; color:var(--ink); line-height:1.4; }
+  .recent-list-meta{ font-size:11.5px; color:var(--muted); font-family:'IBM Plex Mono', monospace; margin-top:3px; }
+  .recent-list-badge{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; background:var(--surface-2); color:var(--muted);
+    border-radius:999px; padding:3px 9px; flex-shrink:0;
+  }
+
+  /* Generic modal (Switch module, etc.) */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:250;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:26px;
+    max-width:420px; width:100%; box-shadow:var(--shadow-pop); position:relative;
+  }
+  .modal-close{
+    position:absolute; top:14px; right:14px; background:none; border:none; color:var(--muted);
+    font-size:20px; line-height:1; cursor:pointer; padding:4px;
+  }
+  .modal-close:hover{ color:var(--ink); }
+  .modal-card h2{ font-family:'Space Grotesk', sans-serif; font-size:19px; margin:0 0 6px; color:var(--ink); }
+  .modal-card p.modal-sub{ color:var(--muted); font-size:13px; margin:0 0 18px; line-height:1.5; }
+
+  /* Two-column form + live preview layout (Bug Generator) */
+  .two-col{ display:grid; grid-template-columns: 1.15fr 0.85fr; gap:22px; align-items:start; }
+  .form-card, .preview-card{
+    background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:20px 22px;
+    box-shadow: var(--shadow-card);
+  }
+  .preview-card{ min-height:360px; display:flex; flex-direction:column; position:sticky; top:26px; }
+  .preview-empty{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; color:var(--muted); gap:6px; padding:40px 16px;
+  }
+  .preview-empty .icon{ font-size:24px; margin-bottom:4px; opacity:0.75; }
+  .context-line{
+    font-size:12.5px; color:var(--muted); background:var(--surface); border:1px solid var(--line);
+    border-radius:8px; padding:9px 12px; margin-bottom:18px;
+  }
+  .context-line b{ color:var(--ink); font-weight:600; }
+  .context-line .change-link{ color:var(--amber); cursor:pointer; font-weight:600; margin-left:8px; background:none; border:none; font-family:'Inter', sans-serif; font-size:12.5px; padding:0; }
+  .context-line .change-link:hover{ text-decoration:underline; }
+  .checkbox-group{
+    border:1px solid var(--line); border-radius:10px; padding:6px 14px; margin-bottom:20px; background:var(--surface);
+  }
+  .checkbox-row{
+    display:flex; align-items:center; gap:9px; padding:11px 0; font-size:13.5px; color:var(--ink);
+    border-bottom:1px solid var(--line-soft); cursor:pointer;
+  }
+  .checkbox-row:last-child{ border-bottom:none; }
+  .checkbox-row input{ accent-color:var(--amber); width:15px; height:15px; flex-shrink:0; }
+
+  @media (max-width: 900px){
+    .top-header{ padding:12px 16px; }
+    .top-nav{ padding:8px 16px; overflow-x:auto; flex-wrap:nowrap; }
+    .module-card{ width:auto; min-width:160px; flex:1; }
+    .main-area{ padding:20px 16px 50px; }
+    .two-col{ grid-template-columns:1fr; }
+    .preview-card{ position:static; }
+  }
 
   h2.section-title{
     font-family:'Space Grotesk', sans-serif;
@@ -111,7 +288,7 @@
   .field input[type=text], .field input[type=number], .field textarea{
     font-family:'Inter', sans-serif; font-size:14px;
     padding:10px 12px; border:1px solid var(--line); border-radius:8px;
-    background:#fff; color:var(--ink); width:100%;
+    background:var(--surface-2); color:var(--ink); width:100%;
   }
   .field input:focus, .field textarea:focus{ outline:2px solid var(--green); outline-offset:1px; }
   .field textarea{ resize:vertical; min-height:70px; font-family:'Inter', sans-serif; }
@@ -125,10 +302,10 @@
 
   .dropzone{
     position:relative; border:1.5px dashed var(--line); border-radius:9px;
-    background:#F5F7F2; padding:16px 12px; text-align:center; cursor:pointer;
+    background:var(--surface-2); padding:16px 12px; text-align:center; cursor:pointer;
     transition: border-color .15s ease, background .15s ease;
   }
-  .dropzone:hover{ border-color: var(--green); background:#F0F5EE; }
+  .dropzone:hover{ border-color: var(--green); background:var(--surface-hover); }
   .dropzone.dragover{ border-color: var(--green); background:var(--green-bg); }
   .dropzone.filled{ border-style:solid; border-color:var(--green); background:var(--green-bg); }
   .dropzone input[type=file]{
@@ -167,24 +344,24 @@
   .stat-line .v.rust{ color:var(--rust); }
 
   .hint-box{
-    font-size:12.5px; color:var(--muted); background:#F2F4EF; border:1px dashed var(--line);
+    font-size:12.5px; color:var(--muted); background:var(--surface-2); border:1px dashed var(--line);
     border-radius:8px; padding:10px 12px; margin: 4px 0 20px;
   }
 
   button.primary{
     font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14px;
-    background: var(--ink); color: var(--surface);
+    background: var(--amber); color: var(--on-accent);
     border:none; border-radius:8px; padding:11px 20px; cursor:pointer;
-    transition: transform .12s ease, background .15s ease;
+    transition: transform .12s ease, filter .15s ease, box-shadow .15s ease;
   }
-  button.primary:hover{ background:#0F1712; }
+  button.primary:hover{ filter:brightness(1.08); box-shadow:0 4px 16px var(--amber-bg); transform:translateY(-1px); }
   button.primary:active{ transform: scale(0.98); }
   button.ghost{
     font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px;
     background:transparent; color:var(--ink); border:1px solid var(--line);
     border-radius:8px; padding:9px 16px; cursor:pointer;
   }
-  button.ghost:hover{ background:#F0F3EC; }
+  button.ghost:hover{ background:var(--surface-hover); }
   .btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin: 6px 0 18px; }
 
   .output-box{
@@ -193,7 +370,7 @@
   .output-box textarea{
     width:100%; min-height:260px; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
     line-height:1.6; padding:14px; border:1px solid var(--line); border-radius:8px;
-    background:#F9FAF7; color:var(--ink); white-space:pre;
+    background:var(--surface-2); color:var(--ink); white-space:pre;
   }
   .copy-feedback{ font-size:12px; color:var(--green); font-family:'IBM Plex Mono', monospace; margin-left:8px; opacity:0; transition:opacity .2s; }
   .copy-feedback.show{ opacity:1; }
@@ -206,7 +383,7 @@
   /* Progress stamp */
   .progress-wrap{ display:flex; align-items:center; gap:18px; margin-bottom:22px; }
   .progress-bar-track{
-    flex:1; height:8px; background:#E2E7DD; border-radius:999px; overflow:hidden; border:1px solid var(--line);
+    flex:1; height:8px; background:var(--surface-2); border-radius:999px; overflow:hidden; border:1px solid var(--line);
   }
   .progress-bar-fill{ height:100%; background:var(--green); width:0%; transition: width .25s ease; }
   .progress-label{ font-family:'IBM Plex Mono', monospace; font-size:13px; white-space:nowrap; color:var(--muted); }
@@ -214,7 +391,7 @@
   /* Question rows */
   .q-row{
     border:1px solid var(--line-soft); border-radius:10px; padding:14px 16px; margin-bottom:10px;
-    background:#fff;
+    background:var(--surface-2);
   }
   .q-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
   .q-text{ font-size:14px; line-height:1.45; flex:1; }
@@ -222,7 +399,7 @@
   .yn-toggle{ display:flex; gap:6px; flex-shrink:0; }
   .yn-btn{
     font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13px;
-    padding:7px 14px; border-radius:7px; border:1px solid var(--line); background:#fff; color:var(--muted);
+    padding:7px 14px; border-radius:7px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted);
     cursor:pointer; min-width:52px;
   }
   .yn-btn.yes.active{ background:var(--green-bg); border-color:var(--green); color:var(--green); }
@@ -231,7 +408,7 @@
   .q-note.visible{ display:block; animation: fadeIn .2s ease; }
   .q-note input{
     width:100%; font-family:'Inter', sans-serif; font-size:13px;
-    padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:#F9FAF7;
+    padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2);
   }
   .q-note label{ font-size:11.5px; color:var(--muted); font-weight:600; display:block; margin-bottom:4px; }
   .q-note .hint{ font-size:11px; color:var(--muted); margin-top:3px; font-style:italic; }
@@ -247,16 +424,16 @@
     display:flex; align-items:center; gap:7px; font-size:13px; cursor:pointer;
     padding:4px 6px; border-radius:6px; transition: background .12s ease;
   }
-  .device-check-item:hover{ background:#F2F4EF; }
+  .device-check-item:hover{ background:var(--surface-hover); }
   .device-check-item input{ margin:0; accent-color: var(--green); flex-shrink:0; }
   .device-check-item .os-tag{
     font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted);
-    background:#EEF1EC; border-radius:4px; padding:1px 5px; margin-left:auto;
+    background:var(--surface-2); border-radius:4px; padding:1px 5px; margin-left:auto;
   }
   .other-devices-input{ margin-top:6px; }
   .os-summary-box{
     font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink);
-    background:#F9FAF7; border:1px solid var(--line); border-radius:7px; padding:9px 11px; margin-bottom:8px;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:7px; padding:9px 11px; margin-bottom:8px;
     min-height:20px; line-height:1.5;
   }
   .os-summary-box.empty{ color:var(--muted); font-style:italic; }
@@ -264,24 +441,24 @@
   /* Crash Finder Dashboard Layout */
   .crash-dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 10px; }
   .results-table-container { width: 100%; overflow-x: auto; margin-top: 15px; border: 1px solid var(--line-soft); border-radius: 8px; }
-  .qa-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background: #fff; }
-  .qa-table th { background: #F2F4EF; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .qa-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background: var(--surface-2); }
+  .qa-table th { background: var(--surface-hover); color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
   .qa-table td { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: top; line-height: 1.4; }
   .prio-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
   .prio-badge.high { background: var(--rust-bg); color: var(--rust); }
   .prio-badge.medium { background: var(--amber-bg); color: var(--amber); }
-  .prio-badge.low { background: #EEF1EC; color: var(--muted); }
+  .prio-badge.low { background: var(--surface-2); color: var(--muted); }
   .prio-badge.critical { background: var(--rust); color: #fff; }
 
   /* Dynamic crash report card (Crash Finder tab) */
-  .crash-report-card{ border:1px solid var(--line-soft); border-radius:10px; padding:18px 20px; background:#fff; }
+  .crash-report-card{ border:1px solid var(--line-soft); border-radius:10px; padding:18px 20px; background:var(--surface-2); }
   .cr-badge-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-  .cr-badge{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:#F9FAF7; color:var(--muted); }
+  .cr-badge{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--muted); }
   .cr-section{ margin-bottom:16px; }
   .cr-section:last-child{ margin-bottom:0; }
   .cr-section h4{ font-family:'Space Grotesk', sans-serif; font-size:13.5px; margin:0 0 6px; color:var(--ink); }
   .cr-section ul{ margin:0; padding-left:18px; font-size:13px; line-height:1.6; color:var(--ink); }
-  .cr-repro-block{ border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:#F9FAF7; }
+  .cr-repro-block{ border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:var(--surface); }
   .cr-repro-block .cr-repro-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:12.5px; margin-bottom:6px; }
   .cr-repro-block ol{ margin:0 0 6px; padding-left:18px; font-size:12.5px; line-height:1.6; }
   .cr-repro-block .cr-result{ font-size:12px; color:var(--muted); font-style:italic; }
@@ -310,7 +487,7 @@
   .user-gate-card input:focus{ outline:2px solid var(--green); outline-offset:1px; }
   .user-badge{
     display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px; color:var(--muted); background:#fff; border:1px solid var(--line);
+    font-size:12.5px; color:var(--muted); background:var(--surface-2); border:1px solid var(--line);
     border-radius:999px; padding:6px 12px 6px 14px; white-space:nowrap;
   }
   .user-badge button{
@@ -324,12 +501,12 @@
   /* Reference app box */
   .ref-app-box{
     border:1px solid var(--line-soft); border-radius:10px; padding:14px 16px; margin-bottom:18px;
-    background:#F9FAF7;
+    background:var(--surface-2);
   }
   .ref-app-box-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:13.5px; margin-bottom:8px; }
   .ref-app-current{
     display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    font-family:'IBM Plex Mono', monospace; font-size:12.5px; background:#fff; border:1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; background:var(--surface-2); border:1px solid var(--line);
     border-radius:8px; padding:9px 12px; margin-bottom:10px;
   }
   .ref-app-current.empty{ color:var(--muted); font-style:italic; font-family:'Inter', sans-serif; }
@@ -351,7 +528,7 @@
   }
   .history-row{
     display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    border:1px solid var(--line-soft); border-radius:9px; padding:10px 14px; margin-bottom:8px; background:#fff;
+    border:1px solid var(--line-soft); border-radius:9px; padding:10px 14px; margin-bottom:8px; background:var(--surface-2);
   }
   .history-row-info{ font-size:13px; line-height:1.5; }
   .history-row-info .hr-version{ font-family:'Space Grotesk', sans-serif; font-weight:600; }
@@ -359,12 +536,12 @@
   .history-row-actions{ display:flex; gap:6px; flex-shrink:0; }
   .history-row-actions button{
     font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11.5px;
-    padding:6px 11px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer;
+    padding:6px 11px; border-radius:6px; border:1px solid var(--line); background:var(--surface-2); cursor:pointer;
   }
   .history-row-actions button.edit{ color:var(--amber); }
   .history-row-actions button.copy{ color:var(--green); }
   .history-row-actions button.delete{ color:var(--rust); }
-  .history-row-actions button:hover{ background:#F2F4EF; }
+  .history-row-actions button:hover{ background:var(--surface-hover); }
 
   @media (max-width: 640px){
     .field-row{ grid-template-columns: 1fr; }
@@ -374,19 +551,77 @@
     .device-groups { grid-template-columns: 1fr; }
     .history-row{ flex-direction:column; align-items:flex-start; }
   }
+
+  /* Appearance toggle switch (Settings tab) */
+  .theme-switch-row{
+    display:flex; align-items:center; justify-content:space-between; font-size:14px;
+    color:var(--ink); font-weight:600; cursor:pointer; padding:4px 0;
+  }
+  .switch{ position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; position:absolute; }
+  .switch-slider{
+    position:absolute; inset:0; background:var(--surface-hover); border:1px solid var(--line);
+    border-radius:999px; transition:background-color .2s ease, border-color .2s ease; cursor:pointer;
+  }
+  .switch-slider:before{
+    content:""; position:absolute; height:16px; width:16px; left:2px; top:2px;
+    background:var(--muted); border-radius:50%; transition:transform .2s ease, background-color .2s ease;
+  }
+  .switch input:checked + .switch-slider{ background:var(--amber-bg); border-color:var(--amber); }
+  .switch input:checked + .switch-slider:before{ transform:translateX(20px); background:var(--amber); }
+
+  /* Toast notifications (replaces native alert()) */
+  .toast{
+    background:var(--surface-2); border:1px solid var(--line); border-left:4px solid var(--amber);
+    border-radius:8px; padding:12px 16px; box-shadow:var(--shadow-card); font-size:13.5px;
+    color:var(--ink); white-space:pre-line; animation: toastIn .18s ease; transition: opacity .2s ease, transform .2s ease;
+  }
+  .toast.toast-error{ border-left-color:var(--rust); }
+  @keyframes toastIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
 </style>
+<script>
+  /* Applied before first paint so switching themes never flashes the wrong palette on reload */
+  (function(){
+    try{
+      if (localStorage.getItem('qa_dashboard_theme') === 'light'){
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch(e){}
+  })();
+</script>
 </head>
 <body>
-<div class="wrap">
+<div class="app-shell">
 
-  <div class="masthead">
-    <div>
-      <span class="eyebrow">Pre-release inspection</span>
-      <h1>Release QA Dashboard</h1>
-      <p>Check app size deltas, walk the release checklist, or map predictive crash vectors before sign-off.</p>
+  <header class="top-header">
+    <div class="top-header-brand">
+      <span class="brand-icon">🧪</span>
+      <span>QA Dashboard</span>
     </div>
-    <div id="userBadgeWrap"></div>
-  </div>
+    <div class="top-header-right">
+      <div class="module-card" id="activeModuleCard" onclick="openSwitchModuleModal()">
+        <div class="module-card-label">
+          <span>Active module</span>
+          <span class="module-round-badge" id="activeModuleRoundBadge">—</span>
+        </div>
+        <div class="module-card-project" id="activeModuleProject">Click to set project</div>
+        <div class="module-card-module" id="activeModuleModule"></div>
+      </div>
+      <div id="sidebarProfileWrap"></div>
+    </div>
+  </header>
+
+  <nav class="top-nav">
+    <button class="tab-btn active" data-tab="dashboard">📊&nbsp; Dashboard</button>
+    <button class="tab-btn" data-tab="size">📦&nbsp; App Size Check</button>
+    <button class="tab-btn" data-tab="checklist">✅&nbsp; QA Checklist</button>
+    <button class="tab-btn" data-tab="crashes">🐛&nbsp; Crash Finder Beta</button>
+    <button class="tab-btn" data-tab="buggen">📝&nbsp; Bug Generator</button>
+    <button class="tab-btn" data-tab="bughistory">🕘&nbsp; Bug History</button>
+    <button class="tab-btn" data-tab="settings">⚙️&nbsp; Settings</button>
+  </nav>
+
+  <main class="main-area">
 
   <div class="user-gate-overlay" id="userGateOverlay" style="display:none;">
     <div class="user-gate-card">
@@ -398,10 +633,38 @@
     </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="size">App Size Check</button>
-    <button class="tab-btn" data-tab="checklist">QA Checklist</button>
-    <button class="tab-btn" data-tab="crashes">Crash Finder Beta</button>
+  <!-- ===================== SWITCH MODULE MODAL ===================== -->
+  <div class="modal-overlay" id="switchModuleOverlay" style="display:none;">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeSwitchModuleModal()">✕</button>
+      <h2>Switch module</h2>
+      <p class="modal-sub">These values are used automatically on every bug report you generate from here on.</p>
+      <div class="field" style="margin-bottom:14px;">
+        <label for="smProject">Project name &amp; version</label>
+        <input type="text" id="smProject" placeholder="e.g. Logowiz (BG) (V154.0.154)">
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label for="smModule">Module name</label>
+        <input type="text" id="smModule" placeholder="e.g. AI Flyer Chat">
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label for="smRound">Current round</label>
+        <input type="text" id="smRound" placeholder="e.g. R-2">
+      </div>
+      <button class="primary" onclick="saveActiveModule()">Save &amp; use</button>
+    </div>
+  </div>
+
+  <!-- ===================== GENERIC CONFIRM MODAL (replaces native confirm()) ===================== -->
+  <div class="modal-overlay" id="customConfirmOverlay" style="display:none;">
+    <div class="modal-card" style="max-width:380px;">
+      <h2 id="customConfirmTitle">Are you sure?</h2>
+      <p class="modal-sub" id="customConfirmMessage"></p>
+      <div class="btn-row" style="margin-top:4px; margin-bottom:0;">
+        <button class="primary" id="customConfirmYesBtn">Yes, continue</button>
+        <button class="ghost" id="customConfirmNoBtn">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <div class="panel-shell">
@@ -411,8 +674,50 @@
       <button class="ghost" onclick="resetChecklist()" style="color: var(--rust); border-color: var(--line); font-size: 13px;">Clear All Options</button>
     </div>
 
+    <!-- ===================== TAB 0: DASHBOARD HOME ===================== -->
+    <div class="tab-panel active" id="tab-dashboard">
+      <div class="topbar">
+        <div>
+          <h1 id="dashboardGreeting">Welcome back</h1>
+          <p>Here's what's happening in your QA workspace.</p>
+        </div>
+        <button class="primary" onclick="document.querySelector('.tab-btn[data-tab=\'buggen\']').click()">📝&nbsp; New bug report</button>
+      </div>
+
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-card-icon">📝</div>
+          <div>
+            <div class="stat-card-label">Total bugs generated</div>
+            <div class="stat-card-value" id="statTotalBugs">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon tint-green">📁</div>
+          <div>
+            <div class="stat-card-label">Current project</div>
+            <div class="stat-card-value" id="statProject">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon tint-info">🧩</div>
+          <div>
+            <div class="stat-card-label">Current module</div>
+            <div class="stat-card-value" id="statModule">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon tint-rust">🔄</div>
+          <div>
+            <div class="stat-card-label">Current round</div>
+            <div class="stat-card-value" id="statRound">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===================== TAB 1: APP SIZE ===================== -->
-    <div class="tab-panel active" id="tab-size">
+    <div class="tab-panel" id="tab-size">
       <h2 class="section-title">App size comparison</h2>
       <p class="section-sub">Upload the reference app, old and new build files — APK, AAB (Android), or IPA (iOS) — or input sizes manually. Analytics evaluate the Old App against the Reference profile.</p>
 
@@ -589,7 +894,7 @@
           <hr class="divider">
           
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin: 0 0 8px;">Step 1 — Feature & Context Understanding</h3>
-          <div class="hint-box" id="crashContextBox" style="background:#fff; font-family:'Inter', sans-serif; white-space:pre-line;"></div>
+          <div class="hint-box" id="crashContextBox" style="background:var(--surface-2); font-family:'Inter', sans-serif; white-space:pre-line;"></div>
 
           <div style="display:none;">
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin: 18px 0 8px;">Table 1 — Bug Prediction Cases</h3>
@@ -638,8 +943,166 @@
       </div>
     </div>
 
+    <!-- ===================== TAB 4: BUG GENERATOR ===================== -->
+    <div class="tab-panel" id="tab-buggen">
+      <h2 class="section-title">New bug report</h2>
+      <p class="section-sub">Type only the steps and what went wrong — the title, issue description, and actual/expected result are generated for you.</p>
+
+      <div class="two-col">
+        <div class="form-card">
+          <div class="context-line">
+            App Name: <b id="bgContextProject">no project set</b> &nbsp;·&nbsp; Feature/Module: <b id="bgContextModule">—</b> &nbsp;·&nbsp; Round: <b id="bgContextRound">—</b>
+            <button type="button" class="change-link" onclick="openSwitchModuleModal()">Change</button>
+          </div>
+
+          <div class="field" style="margin-bottom:16px;">
+            <label for="bgCustomTitle">Custom Bug Title <span class="manual-tag">(optional — overrides the auto-generated title)</span></label>
+            <input type="text" id="bgCustomTitle" placeholder="Leave blank to auto-generate">
+          </div>
+
+          <div class="field" style="margin-bottom:16px;">
+            <label for="bgRawNotes">Steps <span class="manual-tag">(required — the actions you took, and what went wrong at the end)</span></label>
+            <textarea id="bgRawNotes" style="min-height:150px;" placeholder="Generate AI Flyer as free user.&#10;Tap Generate Custom Flyer.&#10;Purchase plan inside editor.&#10;Return to result screen.&#10;Coin icon not visible and Regenerate button is disabled."></textarea>
+          </div>
+
+          <div class="field" style="margin-bottom:16px;">
+            <label for="bgAttachmentLink">Attachment URL <span class="manual-tag">(optional)</span></label>
+            <input type="text" id="bgAttachmentLink" placeholder="https://...">
+          </div>
+
+          <div class="field" style="margin-bottom:16px;">
+            <label for="bgQaSuggestion">QA Suggestion <span class="manual-tag">(optional — overrides the default developer note)</span></label>
+            <textarea id="bgQaSuggestion" placeholder="Optional suggestion for the developer"></textarea>
+          </div>
+
+          <div class="checkbox-group">
+            <label class="checkbox-row"><input type="checkbox" id="bgIncludeResults" checked> Include Actual &amp; Expected Result in report</label>
+            <label class="checkbox-row"><input type="checkbox" id="bgEveryTime" checked> Generated every time</label>
+            <label class="checkbox-row"><input type="checkbox" id="bgLiveVersion"> Generated in live version</label>
+            <label class="checkbox-row"><input type="checkbox" id="bgHasAttachment"> Image/Video attached</label>
+          </div>
+
+          <hr class="divider" style="margin:20px 0;">
+
+          <h2 class="section-title" style="font-size:15px;">Environment Details</h2>
+          <div class="field-row">
+            <div class="field">
+              <label for="bgDeviceName">Device Name</label>
+              <input type="text" id="bgDeviceName" placeholder="e.g. Samsung Galaxy S21">
+            </div>
+            <div class="field">
+              <label for="bgOsVersion">OS Version</label>
+              <input type="text" id="bgOsVersion" placeholder="e.g. Android 13">
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:6px;">
+            <div class="field">
+              <label for="bgScreenSize">Screen Size / Resolution <span class="manual-tag">(optional)</span></label>
+              <input type="text" id="bgScreenSize" placeholder="e.g. 1080x2400 (optional)">
+            </div>
+            <div class="field">
+              <label>Orientation</label>
+              <div class="yn-toggle" id="bgOrientationToggle">
+                <button type="button" class="yn-btn bg-yn-btn no" data-group="orientation" data-val="Portrait">Portrait</button>
+                <button type="button" class="yn-btn bg-yn-btn no" data-group="orientation" data-val="Landscape">Landscape</button>
+                <button type="button" class="yn-btn bg-yn-btn no" data-group="orientation" data-val="Both (Portrait &amp; Landscape)">Both</button>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider" style="margin:20px 0;">
+
+          <div class="context-line" id="aiKeyStatusLine" style="margin-bottom:16px;">
+            <span id="aiKeyStatusText">Checking AI key status…</span>
+            <button type="button" class="change-link" onclick="document.querySelector('.tab-btn[data-tab=\'settings\']').click()">Manage in Settings</button>
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" id="generateBugBtn" onclick="generateBugReport()">✨&nbsp; Generate bug report</button>
+            <button class="ghost" onclick="resetBugGenForm()">Clear form</button>
+          </div>
+          <div id="bugGenStatus" style="font-size:12px; color:var(--muted); margin-top:-10px; margin-bottom:10px;"></div>
+        </div>
+
+        <div class="preview-card">
+          <div id="bugPreviewEmpty" class="preview-empty">
+            <span class="icon">✨</span>
+            <div style="font-weight:600; color:var(--ink);">Your generated report will appear here</div>
+            <div>Fill in your steps and click Generate bug report.</div>
+          </div>
+          <div id="bugPreviewFilled" style="display:none;">
+            <div class="btn-row" style="margin-top:0;">
+              <button class="ghost" onclick="copyBox('bugOutput','bugCopyFeedback')">Copy report</button>
+              <span class="copy-feedback" id="bugCopyFeedback">Copied ✓</span>
+            </div>
+            <div class="output-box">
+              <textarea id="bugOutput" readonly style="min-height:420px;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== TAB 5: BUG HISTORY ===================== -->
+    <div class="tab-panel" id="tab-bughistory">
+      <h2 class="section-title">Bug report history</h2>
+      <p class="section-sub">Every bug report you've generated, grouped by month, newest first. Edit reloads it into the Bug Generator form; Copy grabs that record's report text.</p>
+
+      <h2 class="section-title" style="margin-bottom:6px; font-size:16px;">Issues by module</h2>
+      <p class="section-sub" style="margin-bottom:14px;">How many bug reports have been generated for each module, across all rounds.</p>
+      <div id="moduleBreakdownList" style="margin-bottom:26px;"></div>
+
+      <h2 class="section-title" style="margin-bottom:6px; font-size:16px;">Recent bug reports</h2>
+      <div id="recentBugsList" style="margin-bottom:26px;"></div>
+
+      <hr class="divider" style="margin-bottom:22px;">
+
+      <h2 class="section-title" style="margin-bottom:6px; font-size:16px;">Full history</h2>
+      <div id="bugHistoryContainer"></div>
+    </div>
+
+    <!-- ===================== TAB 6: SETTINGS ===================== -->
+    <div class="tab-panel" id="tab-settings">
+      <h2 class="section-title">Settings</h2>
+      <p class="section-sub">Configuration for this browser. Nothing here is synced to the cloud store.</p>
+
+      <div class="form-card" style="max-width:560px; margin-bottom:20px;">
+        <h2 class="section-title" style="font-size:15px;">🎨 Appearance</h2>
+        <label class="theme-switch-row" for="themeToggleSwitch">
+          <span>Dark mode</span>
+          <span class="switch">
+            <input type="checkbox" id="themeToggleSwitch" checked onchange="onThemeToggleChange(event)">
+            <span class="switch-slider"></span>
+          </span>
+        </label>
+        <p class="section-sub" style="margin:6px 0 0;">Switches the whole dashboard between dark and light. Saved to this browser only.</p>
+      </div>
+
+      <div class="form-card" style="max-width:560px;">
+        <h2 class="section-title" style="font-size:15px;">⚙️ AI generation settings</h2>
+        <div class="field" style="margin-bottom:8px;">
+          <label for="settingsApiKey">Claude API Key <span class="manual-tag">(stored only in this browser — never synced to cloud)</span></label>
+          <input type="password" id="settingsApiKey" placeholder="sk-ant-...">
+        </div>
+        <div class="hint-box" style="margin:0;">
+          Without a key, Bug Generator reports are produced with basic templating from your steps.
+          With a key, the title, issue description, and actual/expected result are written for you using the QA bug-report prompt.
+          Calls go straight from your browser to Anthropic's API — anyone with access to this page's dev tools can see the key, so only use this on a private/internal build.
+        </div>
+        <div class="btn-row">
+          <button class="primary" onclick="saveApiKey()">Save key</button>
+          <button class="ghost" onclick="clearApiKey()">Remove key</button>
+          <span class="copy-feedback" id="apiKeySavedFeedback">Saved ✓</span>
+        </div>
+        <div id="settingsApiKeyStatus" style="font-size:12.5px; color:var(--muted);"></div>
+      </div>
+    </div>
+
   </div>
+  </main>
 </div>
+
+<div id="toastContainer" style="position:fixed; bottom:20px; right:20px; z-index:400; display:flex; flex-direction:column; gap:8px; max-width:360px;"></div>
 
 <script>
 /* =========================================================================
@@ -698,16 +1161,65 @@ let currentUsername = localStorage.getItem(USERNAME_KEY) || '';
 function userKey(base){ return base + '::' + currentUsername.toLowerCase(); }
 
 function renderUserBadge(){
-  document.getElementById('userBadgeWrap').innerHTML = `
-    <div class="user-badge">
-      👤 ${escapeHtml(currentUsername)}
-      <button onclick="switchUser()">Switch</button>
+  const initials = currentUsername.trim().slice(0,2).toUpperCase() || '?';
+  document.getElementById('sidebarProfileWrap').innerHTML = `
+    <div class="profile-row">
+      <div class="profile-avatar">${escapeHtml(initials)}</div>
+      <div class="profile-info">
+        <div class="profile-name">${escapeHtml(currentUsername)}</div>
+        <button class="profile-sub" onclick="switchUser()">Switch user</button>
+      </div>
     </div>`;
+  const greeting = document.getElementById('dashboardGreeting');
+  if (greeting) greeting.textContent = 'Welcome back, ' + currentUsername;
 }
 function escapeHtml(str){
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
+}
+
+/* Custom in-app confirm dialog — replaces native confirm().
+   Native confirm()/alert() can be permanently silenced by the browser (the "Prevent this
+   page from creating additional dialogs" checkbox some browsers offer after a few appear
+   in one session); once that happens every confirm() call returns false with no dialog at
+   all, silently breaking every button that depends on it. This dialog can't be suppressed
+   that way since it's just DOM/CSS, not a native browser dialog. */
+function showConfirm(message, title){
+  return new Promise((resolve) => {
+    document.getElementById('customConfirmTitle').textContent = title || 'Are you sure?';
+    document.getElementById('customConfirmMessage').textContent = message;
+    const overlay = document.getElementById('customConfirmOverlay');
+    const yesBtn = document.getElementById('customConfirmYesBtn');
+    const noBtn = document.getElementById('customConfirmNoBtn');
+    overlay.style.display = 'flex';
+    function cleanup(result){
+      overlay.style.display = 'none';
+      yesBtn.removeEventListener('click', onYes);
+      noBtn.removeEventListener('click', onNo);
+      resolve(result);
+    }
+    function onYes(){ cleanup(true); }
+    function onNo(){ cleanup(false); }
+    yesBtn.addEventListener('click', onYes);
+    noBtn.addEventListener('click', onNo);
+  });
+}
+
+/* Custom toast notification — replaces native alert() for the same suppression-risk reason,
+   and looks like part of the app instead of an unstyled OS dialog. */
+function showToast(message, variant){
+  const container = document.getElementById('toastContainer');
+  if (!container){ console.log(message); return; }
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (variant === 'error' ? ' toast-error' : '');
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(8px)';
+    setTimeout(()=> toast.remove(), 220);
+  }, 2800);
 }
 
 function submitUsername(){
@@ -721,8 +1233,8 @@ function submitUsername(){
   initApp();
 }
 
-function switchUser(){
-  if (!confirm('Switch user? This will reload the page and ask for a name again.')) return;
+async function switchUser(){
+  if (!(await showConfirm('This will reload the page and ask for a name again.', 'Switch user?'))) return;
   localStorage.removeItem(USERNAME_KEY);
   location.reload();
 }
@@ -790,8 +1302,8 @@ function upsertHistoryEntry(fields){
   saveHistory(hist);
   return hist;
 }
-function clearHistory(){
-  if (!confirm('Clear the saved version history from this browser?')) return;
+async function clearHistory(){
+  if (!(await showConfirm('Clear the saved version history from this browser?'))) return;
   localStorage.removeItem(HISTORY_KEY);
 }
 function formatHistoryDateTime(isoDate){
@@ -967,7 +1479,7 @@ async function loadRefApp(){
 }
 
 async function clearRefApp(){
-  if (!confirm('Clear the saved reference app?')) return;
+  if (!(await showConfirm('Clear the saved reference app?'))) return;
   await deleteRecord(userKey('refapp'));
   fileInfo.ref = null;
   renderRefAppLine(null);
@@ -1174,12 +1686,12 @@ async function copySizeRecord(id){
   if (!rec) return;
   try{
     await navigator.clipboard.writeText(buildSizeReportText(rec));
-    alert('Copied that record\'s report to clipboard.');
-  } catch(e){ alert('Could not copy — clipboard access blocked.'); }
+    showToast('Copied that record\'s report to clipboard.');
+  } catch(e){ showToast('Could not copy — clipboard access blocked.', 'error'); }
 }
 
 async function deleteSizeRecord(id){
-  if (!confirm('Delete this size check record?')) return;
+  if (!(await showConfirm('Delete this size check record?'))) return;
   let list = await getSizeHistoryList();
   list = list.filter(x=>x.id!==id);
   await saveRecord(userKey('sizehist'), list);
@@ -1213,7 +1725,7 @@ const questions = [
   {id:3, text:'Have you verified Display AppName (this name will show inside App in Home screen)?', noteType:'onNo'},
   {id:4, text:'Have you checked all permission?', noteType:'onNo'},
   {id:5, text:'Have you verified APP UI Testing as per Design?', noteType:'onNo'},
-  {id:6, text:'Have you checked App notification?', noteType:'onYes'},
+  {id:6, text:'Have you checked App notification?', noteType:'onNo'},
   {id:7, text:'Have you verified OneSignal Id (Notification for new app)?', noteType:'onYes', noteLabel:'Note', hint:'Not added onesignal', defaultNote:'Not added onesignal'},
   {id:8, text:'Have you verified AdMob Ids (Banner, Interstitial, Rewarded, Native)?', noteType:'onNo'},
   {id:9, text:'Have you performed all manual scenario?', noteType:'onNo'},
@@ -1461,8 +1973,6 @@ function updateNoteVisibility(id){
   else if (q.noteType === 'onYes' && ans === 'Yes') show = true;
   else if (q.noteType === 'onNo' && ans === 'No') show = true;
 
-  if (id == 1 && ans === 'No') show = false;
-
   wrap.classList.toggle('visible', show);
 }
 
@@ -1482,8 +1992,8 @@ function updateProgress(){
   }
 }
 
-function resetChecklist() {
-  if (!confirm('Are you sure you want to reset all checklist options?')) return;
+async function resetChecklist() {
+  if (!(await showConfirm('Are you sure you want to reset all checklist options?'))) return;
   
   questions.forEach(q => {
     state[q.id] = { answer: (q.id === 1 ? 'No' : null), note: q.defaultNote || '' };
@@ -1581,7 +2091,7 @@ function generateChecklistReport(mode){
     });
 
     if (failedFields.length > 0) {
-      alert("Cannot generate report due to missing requirements:\n\n" + failedFields.join("\n"));
+      showToast("Cannot generate report due to missing requirements:\n\n" + failedFields.join("\n"), 'error');
       out.value = '';
       return;
     }
@@ -1754,12 +2264,12 @@ async function copyChecklistRecord(id){
   );
   try{
     await navigator.clipboard.writeText(text);
-    alert('Copied that record\'s checklist report to clipboard.');
-  } catch(e){ alert('Could not copy — clipboard access blocked.'); }
+    showToast('Copied that record\'s checklist report to clipboard.');
+  } catch(e){ showToast('Could not copy — clipboard access blocked.', 'error'); }
 }
 
 async function deleteChecklistRecord(id){
-  if (!confirm('Delete this checklist record?')) return;
+  if (!(await showConfirm('Delete this checklist record?'))) return;
   let list = await getChecklistHistoryList();
   list = list.filter(x=>x.id!==id);
   await saveRecord(userKey('checklisthist'), list);
@@ -2101,7 +2611,7 @@ function buildCrashReportPlainText(a){
 function analyzeCrashMetrics() {
   const logContent = document.getElementById('crashLogRawText').value.trim();
   if(!logContent) {
-    alert("Please upload a log file, screenshot, or paste raw text to run predictive metrics.");
+    showToast("Please upload a log file, screenshot, or paste raw text to run predictive metrics.", 'error');
     return;
   }
 
@@ -2145,6 +2655,596 @@ function analyzeCrashMetrics() {
   document.getElementById('crashOutputText').value = outLines.join('\n');
 }
 
+/* ---------------- Active Module (Project / Module / Round) ---------------- */
+let activeModule = { project:'', module:'', round:'' };
+
+async function loadActiveModule(){
+  activeModule = await loadRecord(userKey('activemodule'), { project:'', module:'', round:'' });
+  renderActiveModuleCard();
+}
+
+function renderActiveModuleCard(){
+  const card = document.getElementById('activeModuleCard');
+  const hasProject = !!activeModule.project;
+  card.classList.toggle('empty', !hasProject);
+  document.getElementById('activeModuleProject').textContent = activeModule.project || 'Click to set project';
+  document.getElementById('activeModuleModule').textContent = activeModule.module || '';
+  document.getElementById('activeModuleRoundBadge').textContent = activeModule.round || '—';
+
+  document.getElementById('bgContextProject').textContent = activeModule.project || 'no project set';
+  document.getElementById('bgContextModule').textContent = activeModule.module || '—';
+  document.getElementById('bgContextRound').textContent = activeModule.round || '—';
+
+  document.getElementById('statProject').textContent = activeModule.project || '—';
+  document.getElementById('statModule').textContent = activeModule.module || '—';
+  document.getElementById('statRound').textContent = activeModule.round || '—';
+}
+
+function openSwitchModuleModal(){
+  document.getElementById('smProject').value = activeModule.project || '';
+  document.getElementById('smModule').value = activeModule.module || '';
+  document.getElementById('smRound').value = activeModule.round || '';
+  document.getElementById('switchModuleOverlay').style.display = 'flex';
+}
+
+let pendingGenerateAfterModulePrompt = false;
+
+async function markModulePromptedToday(){
+  const today = new Date().toISOString().slice(0,10);
+  await saveRecord(userKey('moduleprompted'), today);
+}
+async function moduleDailyPromptNeeded(){
+  const today = new Date().toISOString().slice(0,10);
+  const last = await loadRecord(userKey('moduleprompted'), '');
+  return last !== today;
+}
+
+async function closeSwitchModuleModal(){
+  document.getElementById('switchModuleOverlay').style.display = 'none';
+  await markModulePromptedToday();
+  if (pendingGenerateAfterModulePrompt){
+    pendingGenerateAfterModulePrompt = false;
+    generateBugReport();
+  }
+}
+async function saveActiveModule(){
+  activeModule = {
+    project: document.getElementById('smProject').value.trim(),
+    module: document.getElementById('smModule').value.trim(),
+    round: document.getElementById('smRound').value.trim()
+  };
+  await saveRecord(userKey('activemodule'), activeModule);
+  renderActiveModuleCard();
+  await closeSwitchModuleModal();
+}
+/* Note: deliberately no click-outside-to-close listener on the overlay —
+   the modal only dismisses via the X button or "Save & use", per requirements. */
+
+/* ---------------- Bug Generator tab ---------------- */
+let editingBugRecordId = null;
+
+document.querySelectorAll('.bg-yn-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const group = btn.dataset.group;
+    document.querySelectorAll(`.bg-yn-btn[data-group="${group}"]`).forEach(b=>{ b.classList.remove('active'); b.dataset.active=''; });
+    btn.classList.add('active');
+    btn.dataset.active = 'true';
+  });
+});
+function bgOrientationVal(){
+  const active = document.querySelector('.bg-yn-btn[data-group="orientation"].active');
+  return active ? active.dataset.val : '';
+}
+
+function bgVal(id){ return document.getElementById(id).value.trim(); }
+function bgChecked(id){ return document.getElementById(id).checked; }
+
+/* ---------------- Appearance (dark/light theme, browser-local only) ---------------- */
+const THEME_STORAGE = 'qa_dashboard_theme';
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+  localStorage.setItem(THEME_STORAGE, theme === 'light' ? 'light' : 'dark');
+  const toggle = document.getElementById('themeToggleSwitch');
+  if (toggle) toggle.checked = (theme !== 'light');
+}
+function initTheme(){
+  const saved = localStorage.getItem(THEME_STORAGE) || 'dark';
+  applyTheme(saved);
+}
+function onThemeToggleChange(e){
+  applyTheme(e.target.checked ? 'dark' : 'light');
+}
+
+/* ---------------- AI key management (browser-local only, never cloud-synced) ---------------- */
+const API_KEY_STORAGE = 'qa_dashboard_claude_key';
+function loadApiKey(){ return localStorage.getItem(API_KEY_STORAGE) || ''; }
+
+function renderApiKeyStatus(){
+  const key = loadApiKey();
+  const has = !!key;
+  const masked = has ? ('••••••••' + key.slice(-4)) : '';
+
+  const settingsInput = document.getElementById('settingsApiKey');
+  if (settingsInput) settingsInput.value = key;
+
+  const settingsStatus = document.getElementById('settingsApiKeyStatus');
+  if (settingsStatus){
+    settingsStatus.textContent = has
+      ? ('AI key connected (' + masked + ') — Bug Generator will use Claude for full report generation.')
+      : 'No AI key set — Bug Generator will fall back to basic templating.';
+  }
+
+  const bgStatus = document.getElementById('aiKeyStatusText');
+  if (bgStatus){
+    bgStatus.innerHTML = has
+      ? '✅ AI key connected — reports will be written by Claude.'
+      : '⚪ No AI key set — reports will use basic templating.';
+  }
+}
+
+function saveApiKey(){
+  const key = bgVal('settingsApiKey');
+  if (key) localStorage.setItem(API_KEY_STORAGE, key);
+  else localStorage.removeItem(API_KEY_STORAGE);
+  renderApiKeyStatus();
+  const fb = document.getElementById('apiKeySavedFeedback');
+  fb.classList.add('show');
+  setTimeout(()=>fb.classList.remove('show'), 1600);
+}
+
+async function clearApiKey(){
+  if (!(await showConfirm('Remove the saved Claude API key from this browser?'))) return;
+  localStorage.removeItem(API_KEY_STORAGE);
+  document.getElementById('settingsApiKey').value = '';
+  renderApiKeyStatus();
+}
+
+/* ---------------- Deterministic fallback generator (used when no AI key / API call fails) ---------------- */
+function buildBugTitle(f){
+  if (f.customTitle) return f.customTitle;
+  return `${f.appName || 'App Name'} : ${f.feature || 'Feature/Module'} (${f.round || 'Round'}) : ${f.issueDesc || 'Issue description'}`;
+}
+
+function buildBugSteps(f){
+  if (f.rawNotes){
+    const lines = f.rawNotes.split('\n')
+      .map(s=>s.replace(/^\s*\d+[\.\)]\s*/, '').trim())
+      .filter(Boolean);
+    if (lines.length) return lines;
+  }
+  return [`Open the app.`, `Navigate to the ${f.feature || 'affected'} section.`, `Perform the action that leads to the issue.`, `Observe the result.`];
+}
+
+function buildBugReportText(f){
+  const title = buildBugTitle(f);
+  const steps = buildBugSteps(f);
+  const yn = (v)=> v ? 'Yes' : 'No';
+  const lines = [];
+  lines.push('Bug Title:');
+  lines.push(title);
+  lines.push('');
+  lines.push('Steps to Reproduce:');
+  steps.forEach((s,i)=> lines.push((i+1) + '. ' + s));
+  lines.push('');
+  lines.push('Attachment Link:');
+  lines.push(f.attachmentLink || 'not available');
+  if (f.includeResults){
+    lines.push('');
+    lines.push('Actual Result:');
+    lines.push('* ' + (f.actualResult || '(not provided)'));
+    lines.push('');
+    lines.push('Expected Result:');
+    lines.push('* ' + (f.expectedResult || '(not provided)'));
+  }
+  lines.push('');
+  lines.push('QA Suggestion:');
+  lines.push('* ' + (f.qaSuggestion || 'Note for Developer: Check all options after applying the solution'));
+  lines.push('* Is it generated every time? => ' + yn(f.everyTime));
+  lines.push('* Is it generated in the Live version? => ' + yn(f.liveVersion));
+  lines.push('* Did you add an attachment to the issue? => ' + yn(f.hasAttachment));
+  lines.push('');
+  lines.push('Environment Details:');
+  lines.push('* Device Name: ' + (f.deviceName || '(not provided)'));
+  lines.push('* OS Version: ' + (f.osVersion || '(not provided)'));
+  lines.push('* Screen Size / Resolution (Optional): ' + (f.screenSize || '(not provided)'));
+  lines.push('* Orientation: ' + (f.orientation || '(not provided)'));
+  lines.push('');
+  lines.push('Input Details:');
+  lines.push('App Name: ' + (f.appName || 'not available'));
+  lines.push('Build Version: ' + (f.buildVersion || 'not available'));
+  lines.push('Feature/Module: ' + (f.feature || 'not available'));
+  lines.push('Issue Description: ' + (f.issueDesc || 'not available'));
+  lines.push('Attachment Link (if available): ' + (f.attachmentLink || 'not available'));
+  return lines.join('\n');
+}
+
+/* Lightweight keyword-based "Note for Developer" suggestions for the no-AI fallback path.
+   Mirrors the pattern-matching approach already used in Crash Finder. */
+const QA_SUGGESTION_LIBRARY = [
+  { test: /orientation|landscape|portrait|rotate/i, note: 'Verify responsive layout handling, auto layout constraints, and orientation-specific UI adjustments' },
+  { test: /crash|force close|not responding|anr|freeze|hang/i, note: 'Check crash logs and exception handling around this flow; verify null/error states are handled gracefully' },
+  { test: /payment|purchase|subscription|coin|credit|billing/i, note: 'Verify the payment/purchase flow end-to-end, including edge cases like cancelled or delayed transactions' },
+  { test: /network|offline|connection|timeout|no internet/i, note: 'Verify network error handling, retry logic, and offline-state UI fallback' },
+  { test: /login|sign in|signup|sign up|auth|session|logout/i, note: 'Verify authentication/session handling, including token expiry and re-login flow' },
+  { test: /keyboard/i, note: 'Verify keyboard show/hide behavior and input field focus handling' },
+  { test: /image|photo|upload|export|download/i, note: 'Verify file handling (upload/export) for edge cases like large files, unsupported formats, or interrupted transfers' }
+];
+function deriveQaSuggestion(f){
+  const haystack = `${f.rawNotes || ''} ${f.feature || ''}`;
+  const hit = QA_SUGGESTION_LIBRARY.find(entry => entry.test.test(haystack));
+  const tail = hit ? hit.note : 'Check all options after applying the solution';
+  return 'Note for Developer: ' + tail;
+}
+
+function deriveFallbackFields(f){
+  const lines = (f.rawNotes || '').split('\n').map(s=>s.trim()).filter(Boolean);
+  const lastLineRaw = lines.length ? lines[lines.length - 1] : '';
+  const lastLine = lastLineRaw.replace(/^\s*\d+[\.\)]\s*/, '').trim();
+  return Object.assign({}, f, {
+    issueDesc: lastLine,
+    actualResult: lastLine || '(not provided)',
+    expectedResult: '(not provided — add an AI key under Settings for a generated expected result)',
+    qaSuggestion: f.qaSuggestion || deriveQaSuggestion(f)
+  });
+}
+
+/* ---------------- AI-backed generator (uses the exact QA bug-report prompt) ---------------- */
+function buildAIPrompt(f){
+  const yn = v => v ? 'Yes' : 'No';
+  return `Convert the following issue into a clear QA bug report in simple, non-technical language so that a new developer can understand it easily.
+Follow these rules:
+* ALWAYS generate a Bug Title in this exact format (no square brackets):
+  App Name : Feature/Module (Round) : Issue description
+* If "Custom Bug Title" is provided, use it instead of auto-generated title
+* Keep steps simple, sequential, and reproducible
+* Do not combine multiple actions in one step
+* Use clear action words (Open, Tap, Navigate, Observe)
+* Avoid unnecessary technical jargon
+* If the steps below are already clean, sequential, and one action per line, refine them minimally instead of rewriting from scratch
+* Do not skip steps required for reproduction
+* Keep output concise and copy-paste friendly
+* Write a concise Issue Description (one short sentence, no leading step numbers) summarizing what went wrong, based on the raw notes
+* Write Actual Result (what is currently happening) and Expected Result (what should happen instead) based on the raw notes — only if "Include Actual & Expected Result" is Yes below. Each should be one or more clear bullet points, not a copy of a step.
+* Write a "Note for Developer" line that gives specific, actionable technical guidance for this exact bug (e.g. which area of the code, layout system, or behavior to check) — not a generic instruction. Always start it with "Note for Developer: ". If a QA Suggestion override is provided below, use that text after "Note for Developer: " instead of writing your own.
+
+Output format (respond with ONLY this, no preamble, no explanation, no markdown code fences):
+Bug Title:
+[title here]
+
+Steps to Reproduce:
+1.
+2.
+3.
+4.
+
+Attachment Link:
+[link or "not available"]
+
+Actual Result:
+* [only include this section if "Include Actual & Expected Result" is Yes]
+
+Expected Result:
+* [only include this section if "Include Actual & Expected Result" is Yes]
+
+QA Suggestion:
+* Note for Developer: [specific, tailored technical guidance for this bug, or the QA Suggestion override if provided]
+* Is it generated every time? => Yes / No
+* Is it generated in the Live version? => Yes / No
+* Did you add an attachment to the issue? => Yes / No
+
+Environment Details:
+* Device Name:
+* OS Version:
+* Screen Size / Resolution (Optional):
+* Orientation:
+
+Input Details:
+App Name:
+Build Version:
+Feature/Module:
+Issue Description:
+Attachment Link (if available):
+
+Here are the actual input details for this report:
+App Name: ${f.appName || 'not provided'}
+Build Version: ${f.buildVersion || 'not provided'}
+Feature/Module: ${f.feature || 'not provided'}
+Round: ${f.round || 'not provided'}
+Custom Bug Title: ${f.customTitle || '(none — auto-generate the title using the format rule)'}
+Raw QA notes / steps taken by the tester (may include what went wrong at the end — infer the Issue Description, Actual Result, and Expected Result from this):
+${f.rawNotes || '(none provided)'}
+Attachment Link: ${f.attachmentLink || 'not available'}
+Include Actual & Expected Result in report: ${yn(f.includeResults)}
+Is it generated every time: ${yn(f.everyTime)}
+Is it generated in the Live version: ${yn(f.liveVersion)}
+Did you add an attachment: ${yn(f.hasAttachment)}
+QA Suggestion override (use this instead of writing your own developer note if provided): ${f.qaSuggestion || '(none — write your own specific, tailored Note for Developer based on the bug)'}
+Device Name: ${f.deviceName || 'not provided'}
+OS Version: ${f.osVersion || 'not provided'}
+Screen Size / Resolution: ${f.screenSize || 'not provided'}
+Orientation: ${f.orientation || 'not provided'}`;
+}
+
+async function callClaudeAPI(promptText, apiKey){
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-5',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: promptText }]
+    })
+  });
+  if (!response.ok){
+    const errText = await response.text().catch(()=> '');
+    throw new Error('API error ' + response.status + (errText ? ': ' + errText.slice(0,200) : ''));
+  }
+  const data = await response.json();
+  const text = (data.content || []).map(b => b.text || '').join('\n').trim();
+  if (!text) throw new Error('Empty response from API');
+  return text;
+}
+
+function extractTitleFromReport(text){
+  const match = text.match(/Bug Title:\s*\n(.+)/);
+  return match ? match[1].trim() : (text.split('\n')[0] || 'Untitled bug report');
+}
+
+function collectBugFields(){
+  return {
+    appName: activeModule.project,
+    feature: activeModule.module,
+    round: activeModule.round,
+    buildVersion: activeModule.round,
+    customTitle: bgVal('bgCustomTitle'),
+    rawNotes: bgVal('bgRawNotes'),
+    attachmentLink: bgVal('bgAttachmentLink'),
+    qaSuggestion: bgVal('bgQaSuggestion'),
+    includeResults: bgChecked('bgIncludeResults'),
+    everyTime: bgChecked('bgEveryTime'),
+    liveVersion: bgChecked('bgLiveVersion'),
+    hasAttachment: bgChecked('bgHasAttachment'),
+    deviceName: bgVal('bgDeviceName'),
+    osVersion: bgVal('bgOsVersion'),
+    screenSize: bgVal('bgScreenSize'),
+    orientation: bgOrientationVal()
+  };
+}
+
+async function generateBugReport(){
+  const f = collectBugFields();
+  if (!f.rawNotes){
+    showToast('Please add your steps before generating a report.', 'error');
+    return;
+  }
+
+  if (await moduleDailyPromptNeeded()){
+    pendingGenerateAfterModulePrompt = true;
+    openSwitchModuleModal();
+    return;
+  }
+
+  const btn = document.getElementById('generateBugBtn');
+  const status = document.getElementById('bugGenStatus');
+  const apiKey = loadApiKey();
+  const originalLabel = btn.innerHTML;
+  let reportText = '';
+
+  btn.disabled = true;
+  status.textContent = '';
+
+  if (apiKey){
+    btn.innerHTML = '⏳&nbsp; Generating with AI...';
+    try{
+      reportText = await callClaudeAPI(buildAIPrompt(f), apiKey);
+    } catch(e){
+      console.error(e);
+      status.textContent = 'AI generation failed (' + e.message + ') — used basic templating instead. Check your API key.';
+      status.style.color = 'var(--rust)';
+      reportText = buildBugReportText(deriveFallbackFields(f));
+    }
+  } else {
+    status.textContent = 'No AI key set — generated with basic templating from your steps. Add a key under Settings for full AI-written reports.';
+    status.style.color = 'var(--muted)';
+    reportText = buildBugReportText(deriveFallbackFields(f));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = originalLabel;
+
+  const out = document.getElementById('bugOutput');
+  out.value = reportText;
+  document.getElementById('bugPreviewEmpty').style.display = 'none';
+  document.getElementById('bugPreviewFilled').style.display = 'block';
+  saveBugHistoryRecord(f, reportText);
+}
+
+async function resetBugGenForm(){
+  if (!(await showConfirm('Clear all Bug Generator fields?'))) return;
+  ['bgCustomTitle','bgRawNotes','bgAttachmentLink',
+   'bgQaSuggestion','bgDeviceName','bgOsVersion','bgScreenSize']
+   .forEach(id=>{ document.getElementById(id).value = ''; });
+  document.getElementById('bgIncludeResults').checked = true;
+  document.getElementById('bgEveryTime').checked = true;
+  document.getElementById('bgLiveVersion').checked = false;
+  document.getElementById('bgHasAttachment').checked = false;
+  document.querySelectorAll('.bg-yn-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bugOutput').value = '';
+  document.getElementById('bugPreviewEmpty').style.display = 'flex';
+  document.getElementById('bugPreviewFilled').style.display = 'none';
+  document.getElementById('bugGenStatus').textContent = '';
+  editingBugRecordId = null;
+}
+
+async function incrementModuleIssueCount(moduleName){
+  const key = userKey('moduleissuecounts');
+  const counts = await loadRecord(key, {});
+  const name = moduleName || 'Unspecified module';
+  counts[name] = (counts[name] || 0) + 1;
+  await saveRecord(key, counts);
+  return counts;
+}
+async function getModuleIssueCounts(){
+  return await loadRecord(userKey('moduleissuecounts'), {});
+}
+
+async function saveBugHistoryRecord(f, reportText){
+  const key = userKey('bughist');
+  let list = await loadRecord(key, []);
+  const record = {
+    id: editingBugRecordId || (Date.now() + '_' + Math.random().toString(36).slice(2,7)),
+    date: new Date().toISOString(),
+    title: extractTitleFromReport(reportText),
+    round: f.round || '',
+    module: f.feature || '',
+    fields: f,
+    reportText: reportText
+  };
+  let counts;
+  if (editingBugRecordId){
+    const idx = list.findIndex(x=>x.id === editingBugRecordId);
+    if (idx>=0) list[idx] = record; else list.unshift(record);
+    editingBugRecordId = null;
+    counts = await getModuleIssueCounts();
+  } else {
+    list.unshift(record);
+    counts = await incrementModuleIssueCount(f.feature);
+  }
+  if (list.length > 50) list = list.slice(0, 50);
+  await saveRecord(key, list);
+  renderBugHistory(list);
+  updateDashboardStats(list);
+  renderRecentBugsList(list);
+  renderModuleBreakdown(counts);
+}
+
+function renderBugHistory(list){
+  const container = document.getElementById('bugHistoryContainer');
+  if (!list || list.length === 0){
+    container.innerHTML = '<div class="history-empty">No saved bug reports yet — generate one from the Bug Generator tab to start your history.</div>';
+    return;
+  }
+  const groups = groupByMonth(list);
+  container.innerHTML = groups.map(g=>`
+    <div class="history-month-group">
+      <div class="history-month-label">${g.label}</div>
+      ${g.items.map(rec=>`
+        <div class="history-row">
+          <div class="history-row-info">
+            <span class="hr-version">${escapeHtml(rec.title)}</span><br>
+            <span class="hr-meta">${new Date(rec.date).toLocaleString()}</span>
+          </div>
+          <div class="history-row-actions">
+            <button class="edit" onclick="editBugRecord('${rec.id}')">Edit</button>
+            <button class="copy" onclick="copyBugRecord('${rec.id}')">Copy</button>
+            <button class="delete" onclick="deleteBugRecord('${rec.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+async function getBugHistoryList(){
+  return await loadRecord(userKey('bughist'), []);
+}
+
+function renderModuleBreakdown(counts){
+  const container = document.getElementById('moduleBreakdownList');
+  if (!container) return;
+  const entries = Object.entries(counts || {});
+  if (entries.length === 0){
+    container.innerHTML = '<div class="history-empty">No bug reports generated yet — counts will appear here as you generate them.</div>';
+    return;
+  }
+  const rows = entries.sort((a,b)=> b[1]-a[1]);
+  container.innerHTML = rows.map(([mod,count]) => `
+    <div class="recent-list-row">
+      <div class="recent-list-title">${escapeHtml(mod)}</div>
+      <span class="recent-list-badge">${count} issue${count===1?'':'s'}</span>
+    </div>
+  `).join('');
+}
+
+function updateDashboardStats(list){
+  document.getElementById('statTotalBugs').textContent = list.length;
+}
+
+function renderRecentBugsList(list){
+  const container = document.getElementById('recentBugsList');
+  if (!list || list.length === 0){
+    container.innerHTML = '<div class="history-empty">No bug reports generated yet — head to the Bug Generator tab to create your first one.</div>';
+    return;
+  }
+  const recent = list.slice(0, 5);
+  container.innerHTML = recent.map(rec => `
+    <div class="recent-list-row">
+      <div>
+        <div class="recent-list-title">${escapeHtml(rec.title)}</div>
+        <div class="recent-list-meta">${new Date(rec.date).toLocaleString()}</div>
+      </div>
+      <span class="recent-list-badge">${escapeHtml(rec.round || '—')}</span>
+    </div>
+  `).join('');
+}
+
+async function editBugRecord(id){
+  const list = await getBugHistoryList();
+  const rec = list.find(x=>x.id===id);
+  if (!rec) return;
+  editingBugRecordId = id;
+  const f = rec.fields;
+  document.getElementById('bgCustomTitle').value = f.customTitle || '';
+  document.getElementById('bgRawNotes').value = f.rawNotes || '';
+  document.getElementById('bgAttachmentLink').value = f.attachmentLink || '';
+  document.getElementById('bgQaSuggestion').value = f.qaSuggestion || '';
+  document.getElementById('bgIncludeResults').checked = !!f.includeResults;
+  document.getElementById('bgEveryTime').checked = !!f.everyTime;
+  document.getElementById('bgLiveVersion').checked = !!f.liveVersion;
+  document.getElementById('bgHasAttachment').checked = !!f.hasAttachment;
+  document.getElementById('bgDeviceName').value = f.deviceName || '';
+  document.getElementById('bgOsVersion').value = f.osVersion || '';
+  document.getElementById('bgScreenSize').value = f.screenSize || '';
+
+  document.querySelectorAll('.bg-yn-btn[data-group="orientation"]').forEach(b=>{
+    b.classList.toggle('active', f.orientation === b.dataset.val);
+  });
+
+  document.getElementById('bugOutput').value = rec.reportText || buildBugReportText(deriveFallbackFields(f));
+  document.getElementById('bugPreviewEmpty').style.display = 'none';
+  document.getElementById('bugPreviewFilled').style.display = 'block';
+  document.getElementById('bugGenStatus').textContent = '';
+
+  document.querySelector('.tab-btn[data-tab="buggen"]').click();
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
+
+async function copyBugRecord(id){
+  const list = await getBugHistoryList();
+  const rec = list.find(x=>x.id===id);
+  if (!rec) return;
+  try{
+    await navigator.clipboard.writeText(rec.reportText || buildBugReportText(deriveFallbackFields(rec.fields)));
+    showToast('Copied that record\'s bug report to clipboard.');
+  } catch(e){ showToast('Could not copy — clipboard access blocked.', 'error'); }
+}
+
+async function deleteBugRecord(id){
+  if (!(await showConfirm('Delete this bug report record?'))) return;
+  let list = await getBugHistoryList();
+  list = list.filter(x=>x.id!==id);
+  await saveRecord(userKey('bughist'), list);
+  renderBugHistory(list);
+  updateDashboardStats(list);
+  renderRecentBugsList(list);
+  renderModuleBreakdown(await getModuleIssueCounts());
+}
+
 /* initial state triggers */
 document.querySelector(`.yn-btn[data-id="1"][data-val="No"]`).classList.add('active');
 computeSize();
@@ -2152,12 +3252,21 @@ updateProgress();
 
 /* ---------------- App bootstrap ---------------- */
 async function initApp(){
+  renderApiKeyStatus();
+  await loadActiveModule();
   await loadRefApp();
   const sizeList = await getSizeHistoryList();
   renderSizeHistory(sizeList);
   const checklistList = await getChecklistHistoryList();
   renderChecklistHistory(checklistList);
+  const bugList = await getBugHistoryList();
+  renderBugHistory(bugList);
+  updateDashboardStats(bugList);
+  renderRecentBugsList(bugList);
+  renderModuleBreakdown(await getModuleIssueCounts());
 }
+
+initTheme();
 
 if (currentUsername){
   renderUserBadge();
