@@ -230,7 +230,7 @@
   .modal-card p.modal-sub{ color:var(--muted); font-size:13px; margin:0 0 18px; line-height:1.5; }
 
   /* Two-column form + live preview layout (Bug Generator) */
-  .two-col{ display:grid; grid-template-columns: 1.15fr 0.85fr; gap:22px; align-items:start; }
+  .two-col{ display:grid; grid-template-columns: 2fr 3fr; gap:22px; align-items:stretch; }
   .form-card, .preview-card{
     background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:20px 22px;
     box-shadow: var(--shadow-card);
@@ -264,7 +264,7 @@
     .module-card{ width:auto; min-width:160px; flex:1; }
     .main-area{ padding:20px 16px 50px; }
     .two-col{ grid-template-columns:1fr; }
-    .preview-card{ position:static; }
+    .preview-card{ position:static; order:-1; margin-bottom:22px; }
   }
 
   h2.section-title{
@@ -647,9 +647,16 @@
         <label for="smModule">Module name</label>
         <input type="text" id="smModule" placeholder="e.g. AI Flyer Chat">
       </div>
-      <div class="field" style="margin-bottom:18px;">
+      <div class="field" style="margin-bottom:14px;">
         <label for="smRound">Current round</label>
         <input type="text" id="smRound" placeholder="e.g. R-2">
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Platform <span class="manual-tag">(used to pick the right PMS project)</span></label>
+        <div class="yn-toggle" id="smPlatformToggle">
+          <button type="button" class="yn-btn bg-yn-btn no" data-group="smPlatform" data-val="android">🤖 Android</button>
+          <button type="button" class="yn-btn bg-yn-btn no" data-group="smPlatform" data-val="ios">🍎 iOS</button>
+        </div>
       </div>
       <button class="primary" onclick="saveActiveModule()">Save &amp; use</button>
     </div>
@@ -950,11 +957,6 @@
 
       <div class="two-col">
         <div class="form-card">
-          <div class="context-line">
-            App Name: <b id="bgContextProject">no project set</b> &nbsp;·&nbsp; Feature/Module: <b id="bgContextModule">—</b> &nbsp;·&nbsp; Round: <b id="bgContextRound">—</b>
-            <button type="button" class="change-link" onclick="openSwitchModuleModal()">Change</button>
-          </div>
-
           <div class="field" style="margin-bottom:16px;">
             <label for="bgCustomTitle">Custom Bug Title <span class="manual-tag">(optional — overrides the auto-generated title)</span></label>
             <input type="text" id="bgCustomTitle" placeholder="Leave blank to auto-generate">
@@ -1012,11 +1014,6 @@
 
           <hr class="divider" style="margin:20px 0;">
 
-          <div class="context-line" id="aiKeyStatusLine" style="margin-bottom:16px;">
-            <span id="aiKeyStatusText">Checking AI key status…</span>
-            <button type="button" class="change-link" onclick="document.querySelector('.tab-btn[data-tab=\'settings\']').click()">Manage in Settings</button>
-          </div>
-
           <div class="btn-row">
             <button class="primary" id="generateBugBtn" onclick="generateBugReport()">✨&nbsp; Generate bug report</button>
             <button class="ghost" onclick="resetBugGenForm()">Clear form</button>
@@ -1030,13 +1027,16 @@
             <div style="font-weight:600; color:var(--ink);">Your generated report will appear here</div>
             <div>Fill in your steps and click Generate bug report.</div>
           </div>
-          <div id="bugPreviewFilled" style="display:none;">
-            <div class="btn-row" style="margin-top:0;">
-              <button class="ghost" onclick="copyBox('bugOutput','bugCopyFeedback')">Copy report</button>
+          <div id="bugPreviewFilled" style="display:none; flex-direction:column; flex:1; min-height:0;">
+            <div class="btn-row" style="margin-top:0; flex-wrap:wrap;">
+              <button class="ghost" onclick="copyBox('bugOutput','bugCopyFeedback')">Copy full report</button>
+              <button class="ghost" onclick="copyTitleOnly()">Copy title only</button>
+              <button class="ghost" onclick="copyBodyOnly()">Copy body (no title)</button>
+              <button class="ghost" onclick="openInPMS()" style="color:var(--amber); border-color:var(--amber);">🚀 Open in PMS</button>
               <span class="copy-feedback" id="bugCopyFeedback">Copied ✓</span>
             </div>
-            <div class="output-box">
-              <textarea id="bugOutput" readonly style="min-height:420px;"></textarea>
+            <div class="output-box" style="flex:1; min-height:0; display:flex;">
+              <textarea id="bugOutput" readonly style="flex:1; min-height:300px;"></textarea>
             </div>
           </div>
         </div>
@@ -1267,8 +1267,20 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     } else {
       clearAllBtn.style.display = 'none';
     }
+
+    const moduleCard = document.getElementById('activeModuleCard');
+    const bugTabs = ['buggen', 'bughistory'];
+    moduleCard.style.display = bugTabs.includes(btn.dataset.tab) ? 'block' : 'none';
   });
 });
+
+/* Set the correct initial visibility on page load, matching whichever tab starts active */
+(function initModuleCardVisibility(){
+  const activeBtn = document.querySelector('.tab-btn.active');
+  const moduleCard = document.getElementById('activeModuleCard');
+  const bugTabs = ['buggen', 'bughistory'];
+  moduleCard.style.display = (activeBtn && bugTabs.includes(activeBtn.dataset.tab)) ? 'block' : 'none';
+})();
 
 /* ---------------- Version history ---------------- */
 const HISTORY_KEY = 'qa_dashboard_release_history';
@@ -2656,34 +2668,41 @@ function analyzeCrashMetrics() {
 }
 
 /* ---------------- Active Module (Project / Module / Round) ---------------- */
-let activeModule = { project:'', module:'', round:'' };
+let activeModule = { project:'', module:'', round:'', platform:'' };
 
 async function loadActiveModule(){
-  activeModule = await loadRecord(userKey('activemodule'), { project:'', module:'', round:'' });
+  activeModule = await loadRecord(userKey('activemodule'), { project:'', module:'', round:'', platform:'' });
   renderActiveModuleCard();
 }
+
+const PLATFORM_LABELS = { android: '🤖 Android', ios: '🍎 iOS' };
 
 function renderActiveModuleCard(){
   const card = document.getElementById('activeModuleCard');
   const hasProject = !!activeModule.project;
   card.classList.toggle('empty', !hasProject);
   document.getElementById('activeModuleProject').textContent = activeModule.project || 'Click to set project';
-  document.getElementById('activeModuleModule').textContent = activeModule.module || '';
+  const platformLabel = activeModule.platform ? (PLATFORM_LABELS[activeModule.platform] + ' · ') : '';
+  document.getElementById('activeModuleModule').textContent = platformLabel + (activeModule.module || '');
   document.getElementById('activeModuleRoundBadge').textContent = activeModule.round || '—';
-
-  document.getElementById('bgContextProject').textContent = activeModule.project || 'no project set';
-  document.getElementById('bgContextModule').textContent = activeModule.module || '—';
-  document.getElementById('bgContextRound').textContent = activeModule.round || '—';
 
   document.getElementById('statProject').textContent = activeModule.project || '—';
   document.getElementById('statModule').textContent = activeModule.module || '—';
   document.getElementById('statRound').textContent = activeModule.round || '—';
 }
 
+function smPlatformVal(){
+  const active = document.querySelector('.bg-yn-btn[data-group="smPlatform"].active');
+  return active ? active.dataset.val : '';
+}
+
 function openSwitchModuleModal(){
   document.getElementById('smProject').value = activeModule.project || '';
   document.getElementById('smModule').value = activeModule.module || '';
   document.getElementById('smRound').value = activeModule.round || '';
+  document.querySelectorAll('.bg-yn-btn[data-group="smPlatform"]').forEach(b=>{
+    b.classList.toggle('active', activeModule.platform === b.dataset.val);
+  });
   document.getElementById('switchModuleOverlay').style.display = 'flex';
 }
 
@@ -2711,7 +2730,8 @@ async function saveActiveModule(){
   activeModule = {
     project: document.getElementById('smProject').value.trim(),
     module: document.getElementById('smModule').value.trim(),
-    round: document.getElementById('smRound').value.trim()
+    round: document.getElementById('smRound').value.trim(),
+    platform: smPlatformVal()
   };
   await saveRecord(userKey('activemodule'), activeModule);
   renderActiveModuleCard();
@@ -2765,7 +2785,10 @@ function renderApiKeyStatus(){
   const masked = has ? ('••••••••' + key.slice(-4)) : '';
 
   const settingsInput = document.getElementById('settingsApiKey');
-  if (settingsInput) settingsInput.value = key;
+  if (settingsInput){
+    settingsInput.value = '';
+    settingsInput.placeholder = has ? 'Key saved — enter a new key to replace it' : 'sk-ant-...';
+  }
 
   const settingsStatus = document.getElementById('settingsApiKeyStatus');
   if (settingsStatus){
@@ -2773,19 +2796,15 @@ function renderApiKeyStatus(){
       ? ('AI key connected (' + masked + ') — Bug Generator will use Claude for full report generation.')
       : 'No AI key set — Bug Generator will fall back to basic templating.';
   }
-
-  const bgStatus = document.getElementById('aiKeyStatusText');
-  if (bgStatus){
-    bgStatus.innerHTML = has
-      ? '✅ AI key connected — reports will be written by Claude.'
-      : '⚪ No AI key set — reports will use basic templating.';
-  }
 }
 
 function saveApiKey(){
   const key = bgVal('settingsApiKey');
-  if (key) localStorage.setItem(API_KEY_STORAGE, key);
-  else localStorage.removeItem(API_KEY_STORAGE);
+  if (!key){
+    showToast('Enter a key to save, or use "Remove key" to clear the saved one.', 'error');
+    return;
+  }
+  localStorage.setItem(API_KEY_STORAGE, key);
   renderApiKeyStatus();
   const fb = document.getElementById('apiKeySavedFeedback');
   fb.classList.add('show');
@@ -2876,10 +2895,22 @@ function deriveQaSuggestion(f){
   return 'Note for Developer: ' + tail;
 }
 
+/* Without an AI key we can't truly rewrite the tester's last line into a proper problem
+   statement — that needs real language understanding. But we can at least strip the
+   QA-instruction verb ("Check", "Verify", "Observe"...) that a raw step is usually
+   phrased with, so it reads closer to "X is broken" instead of "go check if X is broken". */
+function cleanFallbackIssueText(line){
+  if (!line) return line;
+  const instructionPrefix = /^(check|verify|confirm|ensure|validate|observe|test|see|note)\s+(that\s+|if\s+|whether\s+)?/i;
+  let cleaned = line.replace(instructionPrefix, '').trim();
+  if (!cleaned) cleaned = line;
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
 function deriveFallbackFields(f){
   const lines = (f.rawNotes || '').split('\n').map(s=>s.trim()).filter(Boolean);
   const lastLineRaw = lines.length ? lines[lines.length - 1] : '';
-  const lastLine = lastLineRaw.replace(/^\s*\d+[\.\)]\s*/, '').trim();
+  const lastLine = cleanFallbackIssueText(lastLineRaw.replace(/^\s*\d+[\.\)]\s*/, '').trim());
   return Object.assign({}, f, {
     issueDesc: lastLine,
     actualResult: lastLine || '(not provided)',
@@ -2903,7 +2934,8 @@ Follow these rules:
 * If the steps below are already clean, sequential, and one action per line, refine them minimally instead of rewriting from scratch
 * Do not skip steps required for reproduction
 * Keep output concise and copy-paste friendly
-* Write a concise Issue Description (one short sentence, no leading step numbers) summarizing what went wrong, based on the raw notes
+* Write a concise Issue Description (one short sentence, no leading step numbers) that names WHAT is broken and WHERE, in plain QA language a developer can act on immediately — e.g. "Coin icon disappears and Regenerate button stays disabled after purchasing a plan," not a restatement of the last step like "Observe the screen." It should read like a bug report title's problem statement, not an instruction.
+* Do NOT copy or lightly edit a line from the raw notes into the Issue Description, even if one of the notes already sounds like a problem statement. Genuinely rewrite it in your own words as a clear, self-contained sentence a completely non-technical teammate could read on its own — without needing to read the steps — and immediately understand what's wrong.
 * Write Actual Result (what is currently happening) and Expected Result (what should happen instead) based on the raw notes — only if "Include Actual & Expected Result" is Yes below. Each should be one or more clear bullet points, not a copy of a step.
 * Write a "Note for Developer" line that gives specific, actionable technical guidance for this exact bug (e.g. which area of the code, layout system, or behavior to check) — not a generic instruction. Always start it with "Note for Developer: ". If a QA Suggestion override is provided below, use that text after "Note for Developer: " instead of writing your own.
 
@@ -2982,7 +3014,15 @@ async function callClaudeAPI(promptText, apiKey){
   });
   if (!response.ok){
     const errText = await response.text().catch(()=> '');
-    throw new Error('API error ' + response.status + (errText ? ': ' + errText.slice(0,200) : ''));
+    let errType = '';
+    try{ errType = ((JSON.parse(errText) || {}).error || {}).type || ''; } catch(e){}
+    const isRateLimit = response.status === 429
+      || errType === 'rate_limit_error'
+      || errType === 'overloaded_error'
+      || /rate.?limit|quota|usage limit|too many requests/i.test(errText);
+    const err = new Error('API error ' + response.status + (errText ? ': ' + errText.slice(0,200) : ''));
+    err.isRateLimit = isRateLimit;
+    throw err;
   }
   const data = await response.json();
   const text = (data.content || []).map(b => b.text || '').join('\n').trim();
@@ -2993,6 +3033,90 @@ async function callClaudeAPI(promptText, apiKey){
 function extractTitleFromReport(text){
   const match = text.match(/Bug Title:\s*\n(.+)/);
   return match ? match[1].trim() : (text.split('\n')[0] || 'Untitled bug report');
+}
+
+function extractBodyFromReport(text){
+  return text.replace(/^Bug Title:\s*\n.+\n+/, '').trim();
+}
+
+function copyTitleOnly(){
+  const text = document.getElementById('bugOutput').value;
+  if (!text){ showToast('Generate a report first.', 'error'); return; }
+  const title = extractTitleFromReport(text);
+  navigator.clipboard.writeText(title).then(()=>{
+    showToast('Title copied to clipboard.');
+  }).catch(()=>{ showToast('Could not copy — clipboard access blocked.', 'error'); });
+}
+
+function copyBodyOnly(){
+  const text = document.getElementById('bugOutput').value;
+  if (!text){ showToast('Generate a report first.', 'error'); return; }
+  const body = extractBodyFromReport(text);
+  navigator.clipboard.writeText(body).then(()=>{
+    showToast('Bug body copied (everything except the title).');
+  }).catch(()=>{ showToast('Could not copy — clipboard access blocked.', 'error'); });
+}
+
+/* Redmine "new issue" URLs, picked by the platform set on the Active Module.
+   Redmine supports pre-filling its new-issue form via GET params (issue[subject],
+   issue[description]), so we can open the page with both fields already filled in —
+   no manual copy/paste needed for the common case. */
+const PMS_NEW_ISSUE_URLS = {
+  android: 'https://pms.optimumbrew.com/projects/cp-photo-editor-suite/issues/new',
+  ios: 'https://pms.optimumbrew.com/projects/iha_ios/issues/new'
+};
+const PMS_URL_SAFE_LENGTH = 6000; // conservative limit before some servers start rejecting long GET URLs
+
+function openInPMS(){
+  const text = document.getElementById('bugOutput').value;
+  if (!text){ showToast('Generate a report first.', 'error'); return; }
+  const platform = activeModule.platform;
+  if (!platform || !PMS_NEW_ISSUE_URLS[platform]){
+    showToast('Set Platform (Android/iOS) in Active Module first.', 'error');
+    pendingGenerateAfterModulePrompt = false;
+    openSwitchModuleModal();
+    return;
+  }
+
+  const title = extractTitleFromReport(text);
+  const body = extractBodyFromReport(text);
+  const baseUrl = PMS_NEW_ISSUE_URLS[platform];
+  const prefillUrl = baseUrl
+    + '?issue[subject]=' + encodeURIComponent(title)
+    + '&issue[description]=' + encodeURIComponent(body);
+
+  // Always copy the full report to clipboard too, as a safety net in case this Redmine
+  // instance doesn't accept the pre-fill params or the URL gets truncated.
+  navigator.clipboard.writeText(text).catch(()=>{});
+
+  if (prefillUrl.length <= PMS_URL_SAFE_LENGTH){
+    showToast('Opening PMS with Subject and Description pre-filled. Full report also copied as a backup.');
+    window.open(prefillUrl, '_blank', 'noopener');
+  } else {
+    showToast('Report is too long to pre-fill via URL — copied the full report to your clipboard instead. Paste it in manually.', 'error');
+    window.open(baseUrl, '_blank', 'noopener');
+  }
+}
+
+/* Guarantees the Bug Title always follows the exact QA-standard format
+   (App Name : Feature/Module (Round) : Issue description), regardless of whether
+   the report came from the AI (which may phrase things slightly differently each
+   time despite instructions) or the offline fallback. We let the AI write a good
+   Issue Description in the Input Details section, then rebuild the title line
+   deterministically from that plus the known App/Module/Round — so the title never
+   drifts in format between AI runs, or between AI and fallback output. */
+function enforceTitleFormat(reportText, f){
+  if (f.customTitle) {
+    const title = f.customTitle;
+    return reportText.replace(/Bug Title:\s*\n.+/, 'Bug Title:\n' + title);
+  }
+  const issueMatch = reportText.match(/Issue Description:\s*(.+)/);
+  const issueDesc = issueMatch ? issueMatch[1].trim() : (f.rawNotes ? f.rawNotes.split('\n').filter(l=>l.trim()).pop() || '' : '');
+  const title = buildBugTitle(Object.assign({}, f, { issueDesc }));
+  if (/Bug Title:\s*\n.+/.test(reportText)){
+    return reportText.replace(/Bug Title:\s*\n.+/, 'Bug Title:\n' + title);
+  }
+  return 'Bug Title:\n' + title + '\n\n' + reportText;
 }
 
 function collectBugFields(){
@@ -3023,6 +3147,13 @@ async function generateBugReport(){
     return;
   }
 
+  if (!f.appName || !f.feature || !f.round){
+    showToast('Set App Name, Feature/Module, and Round in Active Module before generating.', 'error');
+    pendingGenerateAfterModulePrompt = true;
+    openSwitchModuleModal();
+    return;
+  }
+
   if (await moduleDailyPromptNeeded()){
     pendingGenerateAfterModulePrompt = true;
     openSwitchModuleModal();
@@ -3044,8 +3175,13 @@ async function generateBugReport(){
       reportText = await callClaudeAPI(buildAIPrompt(f), apiKey);
     } catch(e){
       console.error(e);
-      status.textContent = 'AI generation failed (' + e.message + ') — used basic templating instead. Check your API key.';
-      status.style.color = 'var(--rust)';
+      if (e.isRateLimit){
+        status.textContent = 'Daily AI usage limit reached — generated with basic templating instead, same as without a key. Your API key is fine; try again later or check your Anthropic usage limits.';
+        status.style.color = 'var(--amber)';
+      } else {
+        status.textContent = 'AI generation failed (' + e.message + ') — used basic templating instead. Check your API key.';
+        status.style.color = 'var(--rust)';
+      }
       reportText = buildBugReportText(deriveFallbackFields(f));
     }
   } else {
@@ -3054,13 +3190,15 @@ async function generateBugReport(){
     reportText = buildBugReportText(deriveFallbackFields(f));
   }
 
+  reportText = enforceTitleFormat(reportText, f);
+
   btn.disabled = false;
   btn.innerHTML = originalLabel;
 
   const out = document.getElementById('bugOutput');
   out.value = reportText;
   document.getElementById('bugPreviewEmpty').style.display = 'none';
-  document.getElementById('bugPreviewFilled').style.display = 'block';
+  document.getElementById('bugPreviewFilled').style.display = 'flex';
   saveBugHistoryRecord(f, reportText);
 }
 
@@ -3217,7 +3355,7 @@ async function editBugRecord(id){
 
   document.getElementById('bugOutput').value = rec.reportText || buildBugReportText(deriveFallbackFields(f));
   document.getElementById('bugPreviewEmpty').style.display = 'none';
-  document.getElementById('bugPreviewFilled').style.display = 'block';
+  document.getElementById('bugPreviewFilled').style.display = 'flex';
   document.getElementById('bugGenStatus').textContent = '';
 
   document.querySelector('.tab-btn[data-tab="buggen"]').click();
