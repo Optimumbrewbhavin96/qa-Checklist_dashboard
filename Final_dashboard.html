@@ -354,6 +354,7 @@
     border:none; border-radius:8px; padding:11px 20px; cursor:pointer;
     transition: transform .12s ease, filter .15s ease, box-shadow .15s ease;
   }
+  <button class="tab-btn active" data-tab="size">📦&nbsp; App Size Check</button>
   button.primary:hover{ filter:brightness(1.08); box-shadow:0 4px 16px var(--amber-bg); transform:translateY(-1px); }
   button.primary:active{ transform: scale(0.98); }
   button.ghost{
@@ -682,7 +683,7 @@
     </div>
 
     <!-- ===================== TAB 0: DASHBOARD HOME ===================== -->
-    <div class="tab-panel active" id="tab-dashboard">
+    <div class="tab-panel active" id="tab-size">
       <div class="topbar">
         <div>
           <h1 id="dashboardGreeting">Welcome back</h1>
@@ -1024,7 +1025,7 @@
         <div class="preview-card">
           <div id="bugPreviewEmpty" class="preview-empty">
             <span class="icon">✨</span>
-            <div style="font-weight:600; color:var(--ink);">Your generated report will appear here</div>
+            <div style="font-weight:600; color:var(--ink);">Your generated Da will appear here</div>
             <div>Fill in your steps and click Generate bug report.</div>
           </div>
           <div id="bugPreviewFilled" style="display:none; flex-direction:column; flex:1; min-height:0;">
