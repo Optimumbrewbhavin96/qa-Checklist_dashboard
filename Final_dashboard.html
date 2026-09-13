@@ -612,13 +612,13 @@
   </header>
 
   <nav class="top-nav">
-    <button class="tab-btn active" data-tab="dashboard">📊&nbsp; Dashboard</button>
-    <button class="tab-btn" data-tab="size">📦&nbsp; App Size Check</button>
+    <button class="tab-btn" data-tab="dashboard" style="display:none;">📊&nbsp; Dashboard</button>
+    <button class="tab-btn active" data-tab="size">📦&nbsp; App Size Check</button>
     <button class="tab-btn" data-tab="checklist">✅&nbsp; QA Checklist</button>
     <button class="tab-btn" data-tab="crashes">🐛&nbsp; Crash Finder Beta</button>
-    <button class="tab-btn" data-tab="buggen">📝&nbsp; Bug Generator</button>
-    <button class="tab-btn" data-tab="bughistory">🕘&nbsp; Bug History</button>
-    <button class="tab-btn" data-tab="settings">⚙️&nbsp; Settings</button>
+    <button class="tab-btn" data-tab="buggen" style="display:none;">📝&nbsp; Bug Generator</button>
+    <button class="tab-btn" data-tab="bughistory" style="display:none;">🕘&nbsp; Bug History</button>
+    <button class="tab-btn" data-tab="settings" style="display:none;">⚙️&nbsp; Settings</button>
   </nav>
 
   <main class="main-area">
@@ -682,7 +682,7 @@
     </div>
 
     <!-- ===================== TAB 0: DASHBOARD HOME ===================== -->
-    <div class="tab-panel active" id="tab-dashboard">
+    <div class="tab-panel" id="tab-dashboard">
       <div class="topbar">
         <div>
           <h1 id="dashboardGreeting">Welcome back</h1>
@@ -724,7 +724,7 @@
     </div>
 
     <!-- ===================== TAB 1: APP SIZE ===================== -->
-    <div class="tab-panel" id="tab-size">
+    <div class="tab-panel active" id="tab-size">
       <h2 class="section-title">App size comparison</h2>
       <p class="section-sub">Upload the reference app, old and new build files — APK, AAB (Android), or IPA (iOS) — or input sizes manually. Analytics evaluate the Old App against the Reference profile.</p>
 
